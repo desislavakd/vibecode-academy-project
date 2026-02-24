@@ -1,0 +1,94 @@
+version: '3.9'
+
+services:
+
+  nginx:
+    image: nginx:alpine
+    container_name: ai_nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - ai_network
+
+  php:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: ai_php
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - ai_network
+    environment:
+      - PHP_OPCACHE_ENABLE=1
+
+  mysql:
+    image: mysql:8.0
+    container_name: ai_mysql
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: ai_platform
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravel
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - ai_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ai_redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ai_network
+
+  composer:
+    image: composer:latest
+    container_name: ai_composer
+    working_dir: /var/www/html
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+      - ai_network
+    entrypoint: ['composer']
+
+  node:
+    image: node:20-alpine
+    container_name: ai_node
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+    networks:
+      - ai_network
+    command: sh -c "npm install && npm run dev"
+    environment:
+      - NODE_ENV=development
+      # Internal Docker network URL for Next.js → Laravel proxy rewrites
+      - API_INTERNAL_URL=http://nginx
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  ai_network:
+    driver: bridge

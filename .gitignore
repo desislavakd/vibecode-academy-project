@@ -1,0 +1,25 @@
+########################################################
+# Root .gitignore — safety for sensitive files
+########################################################
+
+# Generic env files at project root
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Backend Laravel env (real secrets live here)
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Frontend Next.js env (local secrets)
+frontend/.env.local
+frontend/.env.*
+!frontend/.env.example
+
+# Patch env files used only for local setup
+patches/laravel.env
+patches/frontend/.env.local
+

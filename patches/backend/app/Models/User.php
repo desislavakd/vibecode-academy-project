@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -40,5 +41,10 @@ class User extends Authenticatable
     public function isOwner(): bool
     {
         return $this->role === UserRole::Owner;
+    }
+
+    public function tools(): HasMany
+    {
+        return $this->hasMany(Tool::class, 'created_by');
     }
 }

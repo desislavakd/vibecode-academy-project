@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\ToolController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -32,4 +35,15 @@ Route::middleware('auth')->group(function () {
             'role'  => $user->role->value,
         ]);
     });
+
+    // Tools CRUD
+    Route::apiResource('api/tools', ToolController::class);
+
+    // Categories
+    Route::get('api/categories',  [CategoryController::class, 'index']);
+    Route::post('api/categories', [CategoryController::class, 'store']);
+
+    // Tags
+    Route::get('api/tags',  [TagController::class, 'index']);
+    Route::post('api/tags', [TagController::class, 'store']);
 });

@@ -23,14 +23,23 @@ export default function Header({ isLoggedIn = false }: HeaderProps) {
     <header className="header">
       <div className="header-inner">
         <Link href="/" className="logo">
-          AI Platform
+          <span className="logo-hex">
+            <span className="hex-row">⬢⬢</span>
+            <span className="hex-row hex-row-offset">⬢⬢</span>
+          </span>
+          ToolHive
         </Link>
 
-        <nav>
+        <nav style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           {isLoggedIn ? (
-            <button onClick={handleLogout} className="btn btn-outline">
-              Logout
-            </button>
+            <>
+              <Link href="/dashboard/tools" className="btn btn-primary">
+                AI Инструменти
+              </Link>
+              <button onClick={handleLogout} className="btn btn-primary">
+                Logout
+              </button>
+            </>
           ) : (
             <Link href="/login" className="btn btn-primary">
               Login

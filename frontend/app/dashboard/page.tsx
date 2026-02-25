@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Header from '@/components/Header'
 import { getUser, type User } from '@/lib/auth'
 
@@ -49,33 +50,38 @@ export default function DashboardPage() {
       <main className="page">
         <div className="card">
           <h1>Dashboard</h1>
-          <p style={{ marginTop: '0.5rem', fontSize: '1.125rem' }}>
-            Добре дошъл, <strong>{user.name}</strong>! Ти си с роля:{' '}
-            <strong>{user.role}</strong>
+          <p style={{ marginTop: '0.5rem', fontSize: '1.05rem' }}>
+            Добре дошъл, <strong>{user.name}</strong>! Ти си с роля: <strong>{user.role}</strong>.
           </p>
 
-          <div className="info-grid">
-            <div className="info-item">
-              <div className="info-label">User ID</div>
-              <div className="info-value">#{user.id}</div>
+          <div style={{ marginTop: '1.5rem' }}>
+            <div className="profile-header">
+              <div className="profile-avatar">
+                {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+              </div>
+              <div>
+                <div className="profile-name">{user.name}</div>
+                <div className="profile-email">{user.email}</div>
+              </div>
             </div>
 
-            <div className="info-item">
-              <div className="info-label">Email</div>
-              <div className="info-value" style={{ fontSize: '0.95rem' }}>{user.email}</div>
-            </div>
-
-            <div className="info-item">
-              <div className="info-label">Role</div>
-              <div className="info-value">{user.role}</div>
-            </div>
-
-            <div className="info-item">
-              <div className="info-label">Current Time</div>
-              <div className="info-value">{time}</div>
+            <div className="profile-rows">
+              <div className="profile-row">
+                <span className="profile-row-label">User ID</span>
+                <span className="profile-row-value">#{user.id}</span>
+              </div>
+              <div className="profile-row">
+                <span className="profile-row-label">Role</span>
+                <span className="profile-row-value">{user.role}</span>
+              </div>
+              <div className="profile-row">
+                <span className="profile-row-label">Time</span>
+                <span className="profile-row-value">{time}</span>
+              </div>
             </div>
           </div>
         </div>
+
       </main>
     </>
   )

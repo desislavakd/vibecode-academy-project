@@ -26,7 +26,7 @@ function getXsrfToken(): string {
 }
 
 /** Headers required for every state-mutating request. */
-function csrfHeaders(): Record<string, string> {
+export function csrfHeaders(): Record<string, string> {
   return {
     'Content-Type': 'application/json',
     Accept: 'application/json',

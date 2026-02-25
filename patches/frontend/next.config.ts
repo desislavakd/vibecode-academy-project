@@ -28,6 +28,12 @@ const nextConfig: NextConfig = {
         source: '/api/:path*',
         destination: `${API_INTERNAL}/api/:path*`,
       },
+      // Turbopack bug workaround: static segment inside dynamic segment doesn't resolve.
+      // Remap /dashboard/tools/:id/edit → internal route /dashboard/tools/edit/:id
+      {
+        source: '/dashboard/tools/:id/edit',
+        destination: '/dashboard/tools/edit/:id',
+      },
     ]
   },
 }

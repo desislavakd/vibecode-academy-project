@@ -5,30 +5,34 @@ import type { NextConfig } from 'next'
  * internal nginx service name. Outside Docker (bare npm run dev) it falls
  * back to localhost:8000.
  *
- * Using /auth/* prefix for Fortify routes avoids conflicts with Next.js
- * page routes at /login and /logout. Next.js App Router page routes take
- * precedence over rewrites for the same path, so Fortify must use a
- * prefix that has no corresponding app/page.tsx (config/fortify.php: prefix=auth).
+ * The rewrites make the browser talk only to localhost:3000, so all cookies
+ * (XSRF-TOKEN, laravel_session) are set on the same origin as the JS code.
+ * That eliminates every cross-origin cookie / CSRF issue.
  */
 const API_INTERNAL = process.env.API_INTERNAL_URL ?? 'http://localhost:8000'
 
 const nextConfig: NextConfig = {
   async rewrites() {
     return [
-      // Sanctum CSRF cookie — no app page at /sanctum/*
       {
         source: '/sanctum/:path*',
         destination: `${API_INTERNAL}/sanctum/:path*`,
       },
-      // Fortify auth routes (prefix = "auth" in config/fortify.php)
+      // Fortify auth routes use prefix "auth" (config/fortify.php)
+      // to avoid conflicting with Next.js app/login/page.tsx
       {
         source: '/auth/:path*',
         destination: `${API_INTERNAL}/auth/:path*`,
       },
-      // Laravel API routes (GET /api/me from routes/web.php)
       {
         source: '/api/:path*',
         destination: `${API_INTERNAL}/api/:path*`,
+      },
+      // Turbopack bug workaround: static segment inside dynamic segment doesn't resolve.
+      // Remap /dashboard/tools/:id/edit → internal route /dashboard/tools/edit/:id
+      {
+        source: '/dashboard/tools/:id/edit',
+        destination: '/dashboard/tools/edit/:id',
       },
     ]
   },

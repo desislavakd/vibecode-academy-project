@@ -26,7 +26,7 @@ function getXsrfToken(): string {
 }
 
 /** Headers required for every state-mutating request. */
-function csrfHeaders(): Record<string, string> {
+export function csrfHeaders(): Record<string, string> {
   return {
     'Content-Type': 'application/json',
     Accept: 'application/json',
@@ -71,8 +71,7 @@ export async function getUser(): Promise<User> {
   })
 
   if (!res.ok) {
-    const body = await res.text().catch(() => '')
-    throw new Error(`Not authenticated (${res.status}: ${body.slice(0, 120)})`)
+    throw new Error('Not authenticated')
   }
 
   return res.json()

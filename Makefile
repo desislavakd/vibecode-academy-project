@@ -1,4 +1,4 @@
-.PHONY: install up down restart logs shell-php shell-node migrate seed fresh
+.PHONY: install up down restart logs shell-php shell-node migrate seed fresh apply-backend apply-frontend
 
 ## ─── First-time install ─────────────────────────────────────────────────────
 
@@ -46,3 +46,14 @@ cache-clear:
 	docker compose exec php php artisan cache:clear
 	docker compose exec php php artisan config:clear
 	docker compose exec php php artisan route:clear
+
+## ─── Patch helpers ───────────────────────────────────────────────────────────
+
+apply-backend:
+	@bash scripts/apply-backend.sh
+
+apply-frontend:
+	@bash scripts/apply-frontend.sh
+	@docker compose exec node rm -rf /app/.next 2>/dev/null || true
+	@docker compose up -d --force-recreate node
+	@echo "Frontend applied and node restarted."

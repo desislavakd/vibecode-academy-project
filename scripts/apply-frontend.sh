@@ -9,8 +9,8 @@ echo "Copying frontend patch files..."
 
 # App layout
 mkdir -p "$FRONTEND/app"
-cp "$PATCHES/app/layout.tsx" "$FRONTEND/app/layout.tsx"
-cp "$PATCHES/app/page.tsx" "$FRONTEND/app/page.tsx"
+cp "$PATCHES/app/layout.tsx"  "$FRONTEND/app/layout.tsx"
+cp "$PATCHES/app/page.tsx"    "$FRONTEND/app/page.tsx"
 cp "$PATCHES/app/globals.css" "$FRONTEND/app/globals.css"
 
 # Login page
@@ -21,13 +21,27 @@ cp "$PATCHES/app/login/page.tsx" "$FRONTEND/app/login/page.tsx"
 mkdir -p "$FRONTEND/app/dashboard"
 cp "$PATCHES/app/dashboard/page.tsx" "$FRONTEND/app/dashboard/page.tsx"
 
+# Tools pages
+mkdir -p "$FRONTEND/app/dashboard/tools"
+cp "$PATCHES/app/dashboard/tools/page.tsx" "$FRONTEND/app/dashboard/tools/page.tsx"
+
+mkdir -p "$FRONTEND/app/dashboard/tools/new"
+cp "$PATCHES/app/dashboard/tools/new/page.tsx" "$FRONTEND/app/dashboard/tools/new/page.tsx"
+
+mkdir -p "$FRONTEND/app/dashboard/tools/[id]"
+cp "$PATCHES/app/dashboard/tools/[id]/page.tsx" "$FRONTEND/app/dashboard/tools/[id]/page.tsx"
+
+mkdir -p "$FRONTEND/app/dashboard/tools/edit/[id]"
+cp "$PATCHES/app/dashboard/tools/edit/[id]/page.tsx" "$FRONTEND/app/dashboard/tools/edit/[id]/page.tsx"
+
 # Components
 mkdir -p "$FRONTEND/components"
 cp "$PATCHES/components/Header.tsx" "$FRONTEND/components/Header.tsx"
 
 # Lib
 mkdir -p "$FRONTEND/lib"
-cp "$PATCHES/lib/auth.ts" "$FRONTEND/lib/auth.ts"
+cp "$PATCHES/lib/auth.ts"  "$FRONTEND/lib/auth.ts"
+cp "$PATCHES/lib/tools.ts" "$FRONTEND/lib/tools.ts"
 
 # Next.js config
 cp "$PATCHES/next.config.ts" "$FRONTEND/next.config.ts"

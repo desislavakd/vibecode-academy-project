@@ -17,9 +17,10 @@ cp "$PATCHES/app/globals.css" "$FRONTEND/app/globals.css"
 mkdir -p "$FRONTEND/app/login"
 cp "$PATCHES/app/login/page.tsx" "$FRONTEND/app/login/page.tsx"
 
-# Dashboard page
+# Dashboard page + layout
 mkdir -p "$FRONTEND/app/dashboard"
-cp "$PATCHES/app/dashboard/page.tsx" "$FRONTEND/app/dashboard/page.tsx"
+cp "$PATCHES/app/dashboard/page.tsx"   "$FRONTEND/app/dashboard/page.tsx"
+cp "$PATCHES/app/dashboard/layout.tsx" "$FRONTEND/app/dashboard/layout.tsx"
 
 # Tools pages
 mkdir -p "$FRONTEND/app/dashboard/tools"
@@ -36,7 +37,8 @@ cp "$PATCHES/app/dashboard/tools/edit/[id]/page.tsx" "$FRONTEND/app/dashboard/to
 
 # Components
 mkdir -p "$FRONTEND/components"
-cp "$PATCHES/components/Header.tsx" "$FRONTEND/components/Header.tsx"
+cp "$PATCHES/components/Header.tsx"  "$FRONTEND/components/Header.tsx"
+cp "$PATCHES/components/Sidebar.tsx" "$FRONTEND/components/Sidebar.tsx"
 
 # Lib
 mkdir -p "$FRONTEND/lib"
@@ -47,3 +49,9 @@ cp "$PATCHES/lib/tools.ts" "$FRONTEND/lib/tools.ts"
 cp "$PATCHES/next.config.ts" "$FRONTEND/next.config.ts"
 
 echo "Frontend files applied."
+
+# Clear Next.js build cache so changes are always picked up
+if [ -d "$FRONTEND/.next" ]; then
+  rm -rf "$FRONTEND/.next"
+  echo ".next cache cleared."
+fi

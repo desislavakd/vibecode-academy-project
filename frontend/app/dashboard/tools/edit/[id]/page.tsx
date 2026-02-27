@@ -41,6 +41,10 @@ export default function EditToolPage() {
   const [selTags, setSelTags]             = useState<string[]>([])
   const [tagInput, setTagInput]           = useState('')
 
+  const tagSuggestions = tagInput.trim().length > 0
+    ? tags.filter(t => t.name.toLowerCase().includes(tagInput.toLowerCase()) && !selTags.includes(t.name)).slice(0, 8)
+    : []
+
   const [screenshots, setScreenshots] = useState([{ url: '', caption: '' }])
   const [examples, setExamples]       = useState([{ title: '', description: '', url: '' }])
 
@@ -275,19 +279,34 @@ export default function EditToolPage() {
 
           <div className="form-group">
             <label>Тагове</label>
-            <div className="tag-input-row">
-              <input
-                type="text"
-                placeholder="Добави таг..."
-                value={tagInput}
-                onChange={e => setTagInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
-                list="tags-datalist"
-              />
-              <datalist id="tags-datalist">
-                {tags.map(t => <option key={t.id} value={t.name} />)}
-              </datalist>
-              <button type="button" className="btn btn-outline btn-sm" onClick={addTag}>+</button>
+            <div className="tag-autocomplete">
+              <div className="tag-input-row">
+                <input
+                  type="text"
+                  placeholder="Добави таг..."
+                  value={tagInput}
+                  onChange={e => setTagInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
+                  autoComplete="off"
+                />
+                <button type="button" className="btn btn-outline btn-sm" onClick={addTag}>+</button>
+              </div>
+              {tagSuggestions.length > 0 && (
+                <div className="tag-suggestions">
+                  {tagSuggestions.map(t => (
+                    <div
+                      key={t.id}
+                      className="tag-suggestion-item"
+                      onMouseDown={() => {
+                        setSelTags(prev => [...prev, t.name])
+                        setTagInput('')
+                      }}
+                    >
+                      {t.name}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             {selTags.length > 0 && (
               <div className="tag-chips">

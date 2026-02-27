@@ -55,6 +55,11 @@ export default function DashboardPage() {
             <div className="profile-name">{user.name}</div>
             <div className="profile-email">{user.email}</div>
             <div className="profile-meta">User ID: #{user.id} · {time}</div>
+            <div style={{ marginTop: '0.4rem' }}>
+              <span className={`twofa-badge ${user.two_factor_enabled ? 'twofa-badge--on' : 'twofa-badge--off'}`}>
+                {user.two_factor_enabled ? '🔐 2FA активна' : '2FA изключена'}
+              </span>
+            </div>
           </div>
         </div>
       </div>

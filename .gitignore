@@ -1,25 +1,65 @@
 ########################################################
-# Root .gitignore — safety for sensitive files
+# Root .gitignore — ToolHive
 ########################################################
 
-# Generic env files at project root
+# ── Env / secrets ──────────────────────────────────────
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Backend Laravel env (real secrets live here)
 backend/.env
 backend/.env.*
 !backend/.env.example
 
-# Frontend Next.js env (local secrets)
 frontend/.env.local
 frontend/.env.*
 !frontend/.env.example
 
-# Patch env files used only for local setup
+# patches env files contain real secrets — never commit
 patches/laravel.env
 patches/frontend/.env.local
 
+# ── Backend (Laravel) ──────────────────────────────────
+backend/vendor/
+backend/node_modules/
+backend/storage/logs/*.log
+backend/storage/framework/cache/data/
+backend/storage/framework/sessions/
+backend/storage/framework/views/
+backend/bootstrap/cache/*.php
+!backend/bootstrap/cache/.gitignore
+
+# ── Frontend (Next.js) ─────────────────────────────────
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.pnp
+frontend/.pnp.*
+frontend/.yarn/*
+!frontend/.yarn/patches
+!frontend/.yarn/plugins
+!frontend/.yarn/releases
+!frontend/.yarn/versions
+frontend/coverage/
+frontend/next-env.d.ts
+frontend/*.tsbuildinfo
+frontend/.vercel
+
+# ── OS / editor ────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.pem
+.idea/
+.vscode/settings.json
+*.suo
+*.user
+
+# ── Logs ───────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*

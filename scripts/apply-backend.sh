@@ -49,6 +49,14 @@ cp "$PATCHES/database/migrations/2024_01_02_000007_create_tool_screenshots_table
    "$BACKEND/database/migrations/2024_01_02_000007_create_tool_screenshots_table.php"
 cp "$PATCHES/database/migrations/2024_01_02_000008_create_tool_examples_table.php" \
    "$BACKEND/database/migrations/2024_01_02_000008_create_tool_examples_table.php"
+cp "$PATCHES/database/migrations/2024_01_03_000000_add_two_factor_to_users_table.php" \
+   "$BACKEND/database/migrations/2024_01_03_000000_add_two_factor_to_users_table.php"
+cp "$PATCHES/database/migrations/2024_01_04_000000_update_tools_status_enum.php" \
+   "$BACKEND/database/migrations/2024_01_04_000000_update_tools_status_enum.php"
+cp "$PATCHES/database/migrations/2024_01_05_000000_create_audit_logs_table.php" \
+   "$BACKEND/database/migrations/2024_01_05_000000_create_audit_logs_table.php"
+cp "$PATCHES/database/migrations/2024_01_06_000000_add_request_info_to_audit_logs_table.php" \
+   "$BACKEND/database/migrations/2024_01_06_000000_add_request_info_to_audit_logs_table.php"
 
 # Seeders
 mkdir -p "$BACKEND/database/seeders"
@@ -61,6 +69,7 @@ cp "$PATCHES/database/seeders/ToolSeeder.php"     "$BACKEND/database/seeders/Too
 # Models
 mkdir -p "$BACKEND/app/Models"
 cp "$PATCHES/app/Models/User.php"           "$BACKEND/app/Models/User.php"
+cp "$PATCHES/app/Models/AuditLog.php"       "$BACKEND/app/Models/AuditLog.php"
 cp "$PATCHES/app/Models/Tool.php"           "$BACKEND/app/Models/Tool.php"
 cp "$PATCHES/app/Models/ToolRole.php"       "$BACKEND/app/Models/ToolRole.php"
 cp "$PATCHES/app/Models/ToolScreenshot.php" "$BACKEND/app/Models/ToolScreenshot.php"
@@ -71,6 +80,7 @@ cp "$PATCHES/app/Models/Tag.php"            "$BACKEND/app/Models/Tag.php"
 # Controllers
 mkdir -p "$BACKEND/app/Http/Controllers"
 cp "$PATCHES/app/Http/Controllers/ToolController.php"     "$BACKEND/app/Http/Controllers/ToolController.php"
+cp "$PATCHES/app/Http/Controllers/AuditLogController.php" "$BACKEND/app/Http/Controllers/AuditLogController.php"
 cp "$PATCHES/app/Http/Controllers/CategoryController.php" "$BACKEND/app/Http/Controllers/CategoryController.php"
 cp "$PATCHES/app/Http/Controllers/TagController.php"      "$BACKEND/app/Http/Controllers/TagController.php"
 

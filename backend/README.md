@@ -1,59 +1,76 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ToolHive — Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel 11 (PHP 8.3) API backend for the ToolHive internal tools platform.
 
-## About Laravel
+> **Do not edit files here directly.**
+> Edit in `patches/backend/` and run `bash scripts/apply-backend.sh` to apply.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Framework:** Laravel 11
+- **Auth:** Laravel Fortify (session-based, prefix `auth`)
+- **Database:** MySQL 8
+- **Cache / Session:** Redis 7 (DB 1 for cache)
+- **Routing:** All routes in `routes/web.php` (web middleware group — session always active)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Key files (managed via patches/)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| File | Purpose |
+|------|---------|
+| `routes/web.php` | All API routes under `middleware('auth')` |
+| `app/Enums/UserRole.php` | `owner \| backend \| frontend \| qa \| designer \| pm` |
+| `app/Http/Middleware/EnsureRole.php` | Role guard, alias `role` in bootstrap/app.php |
+| `app/Models/User.php` | `isOwner()`, role cast, two-factor fields |
+| `app/Models/AuditLog.php` | `record(User, action, Tool, metadata[])` static helper |
+| `app/Models/Tool.php` | Relationships: categories, tags, roles, screenshots, examples |
+| `app/Policies/ToolPolicy.php` | `update` (any auth), `delete` (author or owner), `moderate` (owner) |
+| `app/Http/Controllers/ToolController.php` | CRUD + approve/reject + Redis cache + audit logging |
+| `app/Http/Controllers/AuditLogController.php` | `index` (filtered list) + `destroy` (single entry) |
+| `app/Http/Controllers/CategoryController.php` | Cached index + store with cache invalidation |
+| `app/Http/Controllers/TagController.php` | Cached index + store with cache invalidation |
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Migrations (in order)
 
-### Premium Partners
+| Migration | Description |
+|-----------|-------------|
+| `2024_01_01_…_add_role_to_users_table` | Adds `role` enum column |
+| `2024_01_02_…_create_categories_table` | Categories |
+| `2024_01_02_…_create_tags_table` | Tags |
+| `2024_01_02_…_create_tools_table` | Tools (name, url, description, status enum, created_by) |
+| `2024_01_02_…_create_tool_categories_table` | Pivot |
+| `2024_01_02_…_create_tool_roles_table` | Tool ↔ role assignments |
+| `2024_01_02_…_create_tool_tags_table` | Pivot |
+| `2024_01_02_…_create_tool_screenshots_table` | Screenshots (url, caption) |
+| `2024_01_02_…_create_tool_examples_table` | Examples (title, description, url) |
+| `2024_01_03_…_add_two_factor_to_users_table` | 2FA columns for Fortify |
+| `2024_01_04_…_update_tools_status_enum` | Ensures pending/approved/rejected enum |
+| `2024_01_05_…_create_audit_logs_table` | Audit log table |
+| `2024_01_06_…_add_request_info_to_audit_logs_table` | Adds ip_address, user_agent |
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## Redis Cache
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+| Key | TTL | Invalidated on |
+|-----|-----|----------------|
+| `categories:all` | 3600s | Category created |
+| `tags:all` | 3600s | Tag created or tool create/update |
+| `tools:approved:page1` | 300s | Any tool mutation |
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Useful commands
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+docker compose exec php php artisan migrate
+docker compose exec php php artisan db:seed
+docker compose exec php php artisan migrate:fresh --seed
+docker compose exec php php artisan config:clear && php artisan route:clear
+docker compose exec redis redis-cli -n 1 FLUSHDB   # clear cache
+```

@@ -120,6 +120,66 @@ docker compose logs -f php
 
 ---
 
+## Adding a Tool
+
+Any authenticated team member can submit a tool. Here is the full flow:
+
+1. **Log in** at [http://localhost:3000/login](http://localhost:3000/login).
+2. Click **"New Tool"** in the sidebar or navigate to `/dashboard/tools/new`.
+3. Fill in the form:
+   - **Name** and **URL** — required.
+   - **Description** — what the tool does.
+   - **How to use** — practical usage notes for your teammates.
+   - **Documentation URL** — optional link to official docs.
+   - **Categories** and **Tags** — select existing or type to create new ones.
+   - **Roles** — which team roles this tool is relevant for.
+   - **Screenshots** and **Examples** — optional, but help others evaluate the tool faster.
+4. Click **Submit**.
+
+### What happens next
+
+| If you are… | Tool status after submit |
+|-------------|--------------------------|
+| **owner**   | `approved` — visible in the catalogue immediately |
+| anyone else | `pending` — waits for owner review in the Admin Panel |
+
+The owner approves or rejects pending tools from **Admin Panel** (`/dashboard/admin`).
+Once approved, the tool appears in the main catalogue for everyone.
+
+---
+
+## Roles & Permissions
+
+There are six roles in ToolHive. The `owner` role has full administrative access; all others are regular team members differentiated by their discipline.
+
+| Role       | Description          |
+|------------|----------------------|
+| `owner`    | Platform administrator |
+| `backend`  | Backend Developer    |
+| `frontend` | Frontend Developer   |
+| `qa`       | QA Engineer          |
+| `designer` | Designer             |
+| `pm`       | Product Manager      |
+
+### Permission Matrix
+
+| Action                        | owner | backend | frontend | qa | designer | pm |
+|-------------------------------|:-----:|:-------:|:--------:|:--:|:--------:|:--:|
+| Browse approved tools         | ✅    | ✅      | ✅       | ✅ | ✅       | ✅ |
+| Submit a new tool             | ✅    | ✅      | ✅       | ✅ | ✅       | ✅ |
+| Edit any tool                 | ✅    | ✅      | ✅       | ✅ | ✅       | ✅ |
+| Delete own tool               | ✅    | ✅      | ✅       | ✅ | ✅       | ✅ |
+| Delete any tool               | ✅    | ❌      | ❌       | ❌ | ❌       | ❌ |
+| Approve / reject tools        | ✅    | ❌      | ❌       | ❌ | ❌       | ❌ |
+| View Admin Panel              | ✅    | ❌      | ❌       | ❌ | ❌       | ❌ |
+| View Audit Log                | ✅    | ❌      | ❌       | ❌ | ❌       | ❌ |
+| Delete audit log entries      | ✅    | ❌      | ❌       | ❌ | ❌       | ❌ |
+| Enable / disable own 2FA      | ✅    | ✅      | ✅       | ✅ | ✅       | ✅ |
+
+> **Note:** "Edit any tool" is intentionally open to all authenticated users so teams can collaboratively keep tool descriptions up to date. Delete is restricted to the tool's author or the owner.
+
+---
+
 ## Project Structure
 
 ```

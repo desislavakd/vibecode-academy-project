@@ -1,10 +1,17 @@
 import type { Metadata } from 'next'
-import { Geist } from 'next/font/google'
+import { Space_Grotesk, DM_Sans } from 'next/font/google'
 import './globals.css'
 
-const geist = Geist({
+const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  variable: '--font-geist',
+  variable: '--font-heading',
+  display: 'swap',
+})
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-body',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -19,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={geist.variable}>{children}</body>
+      <body className={`${spaceGrotesk.variable} ${dmSans.variable}`}>{children}</body>
     </html>
   )
 }

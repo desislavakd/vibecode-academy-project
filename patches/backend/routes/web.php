@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\ToolController;
@@ -29,15 +30,18 @@ Route::middleware('auth')->group(function () {
         $user = $request->user();
 
         return response()->json([
-            'id'    => $user->id,
-            'name'  => $user->name,
-            'email' => $user->email,
-            'role'  => $user->role->value,
+            'id'                 => $user->id,
+            'name'               => $user->name,
+            'email'              => $user->email,
+            'role'               => $user->role->value,
+            'two_factor_enabled' => $user->two_factor_confirmed_at !== null,
         ]);
     });
 
     // Tools CRUD
     Route::apiResource('api/tools', ToolController::class);
+    Route::post('api/tools/{tool}/approve', [ToolController::class, 'approve'])->middleware('role:owner');
+    Route::post('api/tools/{tool}/reject',  [ToolController::class, 'reject'])->middleware('role:owner');
 
     // Categories
     Route::get('api/categories',  [CategoryController::class, 'index']);
@@ -46,4 +50,8 @@ Route::middleware('auth')->group(function () {
     // Tags
     Route::get('api/tags',  [TagController::class, 'index']);
     Route::post('api/tags', [TagController::class, 'store']);
+
+    // Audit log — owner only
+    Route::get('api/audit-logs',               [AuditLogController::class, 'index'])->middleware('role:owner');
+    Route::delete('api/audit-logs/{auditLog}', [AuditLogController::class, 'destroy'])->middleware('role:owner');
 });

@@ -18,4 +18,9 @@ class ToolPolicy
         return $user->id === $tool->created_by
             || $user->role === UserRole::Owner;
     }
+
+    public function moderate(User $user, Tool $tool): bool
+    {
+        return $user->isOwner();
+    }
 }

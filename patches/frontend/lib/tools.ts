@@ -38,7 +38,7 @@ export interface Tool {
   description: string
   how_to_use: string | null
   documentation_url: string | null
-  status: 'draft' | 'published'
+  status: 'pending' | 'approved' | 'rejected'
   created_by: ToolAuthor
   categories: Category[]
   tags: Tag[]
@@ -63,6 +63,7 @@ export interface ToolFilters {
   role?: string
   category?: string
   tag?: string
+  status?: string
   page?: number
 }
 
@@ -85,6 +86,7 @@ export async function getTools(filters: ToolFilters = {}): Promise<PaginatedTool
   if (filters.role)     params.set('role', filters.role)
   if (filters.category) params.set('category', filters.category)
   if (filters.tag)      params.set('tag', filters.tag)
+  if (filters.status)   params.set('status', filters.status)
   if (filters.page)     params.set('page', String(filters.page))
 
   const res = await fetch(`/api/tools?${params}`, { credentials: 'include' })
@@ -165,4 +167,80 @@ export async function getTags(): Promise<Tag[]> {
   if (!res.ok) throw new Error('Failed to fetch tags')
   const json = await res.json()
   return json.data
+}
+
+export async function approveTool(id: number): Promise<Tool> {
+  const res = await fetch(`/api/tools/${id}/approve`, {
+    method: 'POST',
+    headers: csrfHeaders(),
+    credentials: 'include',
+  })
+  if (!res.ok) throw new Error('Failed to approve tool')
+  const json = await res.json()
+  return json.data
+}
+
+export async function rejectTool(id: number): Promise<Tool> {
+  const res = await fetch(`/api/tools/${id}/reject`, {
+    method: 'POST',
+    headers: csrfHeaders(),
+    credentials: 'include',
+  })
+  if (!res.ok) throw new Error('Failed to reject tool')
+  const json = await res.json()
+  return json.data
+}
+
+// ─── Audit Log ───────────────────────────────────────────────────────────────
+
+export interface AuditEntry {
+  id: number
+  user_id: number | null
+  user_name: string
+  user_role: string
+  action: 'created' | 'updated' | 'approved' | 'rejected' | 'deleted'
+  tool_id: number | null
+  tool_name: string
+  metadata: Record<string, { old: string | null; new: string | null }> | null
+  ip_address: string | null
+  user_agent: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AuditLogFilters {
+  action?: string
+  search?: string
+  from?: string    // YYYY-MM-DD
+  to?: string      // YYYY-MM-DD
+  user_id?: number
+  page?: number
+}
+
+export interface PaginatedAuditLog {
+  data: AuditEntry[]
+  meta: { total: number; page: number; last_page: number }
+}
+
+export async function getAuditLogs(filters: AuditLogFilters = {}): Promise<PaginatedAuditLog> {
+  const params = new URLSearchParams()
+  if (filters.action)  params.set('action',  filters.action)
+  if (filters.search)  params.set('search',  filters.search)
+  if (filters.from)    params.set('from',    filters.from)
+  if (filters.to)      params.set('to',      filters.to)
+  if (filters.user_id) params.set('user_id', String(filters.user_id))
+  if (filters.page)    params.set('page',    String(filters.page))
+
+  const res = await fetch(`/api/audit-logs?${params}`, { credentials: 'include' })
+  if (!res.ok) throw new Error('Failed to fetch audit logs')
+  return res.json()
+}
+
+export async function deleteAuditLog(id: number): Promise<void> {
+  const res = await fetch(`/api/audit-logs/${id}`, {
+    method: 'DELETE',
+    headers: csrfHeaders(),
+    credentials: 'include',
+  })
+  if (!res.ok) throw new Error('Failed to delete audit log entry')
 }

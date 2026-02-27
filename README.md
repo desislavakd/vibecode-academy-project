@@ -1,243 +1,122 @@
 # ToolHive
 
-Internal AI tools sharing platform. Team members can add, browse and manage AI tools by role and category.
+> An internal platform for discovering, sharing, and managing AI tools across your team.
+
+ToolHive gives every team member a single place to add the AI tools they rely on, browse what colleagues have shared, and keep the catalogue organized by role, category, and tag. Owners keep quality high through an approval workflow and a full audit log.
 
 ---
 
-## Stack
+## Key Features
 
-| Layer         | Technology                              |
-|---------------|-----------------------------------------|
-| Backend       | Laravel 11 (PHP 8.3) + Fortify          |
-| Database      | MySQL 8                                 |
-| Cache/Session | Redis 7                                 |
-| Frontend      | Next.js 16 (App Router, TypeScript)     |
-| Fonts         | Space Grotesk + DM Sans (next/font/google) |
-| Web server    | nginx                                   |
-| Runtime       | Docker / Docker Compose                 |
+- **Tool catalogue** — Browse approved AI tools filtered by role, category, or tag.
+- **Submit & manage tools** — Any team member can submit a tool; owners review before it goes live.
+- **Role-based access** — Six roles (owner, backend, frontend, qa, designer, pm) with fine-grained permissions.
+- **Approval workflow** — Pending → Approved / Rejected; owners act from the Admin Panel.
+- **Audit log** — Every create, update, approve, reject, and delete is recorded with actor, diff, IP, and browser info.
+- **Two-factor authentication** — TOTP-based 2FA that each user controls from their Settings page.
+- **Redis caching** — Tools, categories, and tags are cached for fast page loads; cache is invalidated automatically on writes.
+- **Dark design system** — Consistent dark UI with Space Grotesk headings and DM Sans body text.
 
 ---
 
-## Prerequisites
+## Tech Stack
 
-- Docker Desktop (or Docker Engine + Compose v2)
+| Layer             | Technology                                  |
+|-------------------|---------------------------------------------|
+| Backend           | Laravel 11 (PHP 8.3) + Laravel Fortify      |
+| Database          | MySQL 8                                     |
+| Cache / Session   | Redis 7                                     |
+| Frontend          | Next.js 16 (App Router, TypeScript)         |
+| Web server        | nginx                                       |
+| Runtime           | Docker / Docker Compose                     |
+| Development Tools | Developed with Claude Code using an AI-augmented workflow |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine + Compose v2)
 - Git
-- `make` (optional but recommended)
 
----
-
-## First-time Setup
+### Installation
 
 ```bash
-# 1. Clone the repo
+# 1. Clone the repository
+git clone <repo-url>
 cd vibecode-academy-project
 
-# 2. Build images
+# 2. Build the Docker images
 docker compose build
 
-# 3. Run the install script (installs Laravel, Fortify, Next.js, seeds DB)
-bash scripts/install.sh
-
-# 4. Start everything
-docker compose up -d
-```
-
-Then open:
-- **Frontend:** http://localhost:3000
-- **Backend (direct):** http://localhost:8000
-
----
-
-## Manual step-by-step (alternative to install.sh)
-
-```bash
-# 1. Build images
-docker compose build
-
-# 2. Install Laravel
+# 3. Install Laravel dependencies and scaffold the backend
 docker compose run --rm composer create-project laravel/laravel . --prefer-dist
-
-# 3. Copy our .env
 cp patches/laravel.env backend/.env
-
-# 4. Install Fortify
 docker compose run --rm composer require laravel/fortify
 
-# 5. Apply custom backend files
+# 4. Apply custom backend source files
 bash scripts/apply-backend.sh
 
-# 6. Generate key
+# 5. Generate the application key and start all services
 docker compose run --rm php php artisan key:generate
-
-# 7. Start services
 docker compose up -d
 
-# 8. Wait for MySQL (~10 seconds), then migrate + seed
+# 6. Wait ~10 seconds for MySQL, then run migrations and seed demo data
 docker compose exec php php artisan migrate
 docker compose exec php php artisan db:seed
 
-# 9. Install Next.js frontend
+# 7. Scaffold the Next.js frontend
 docker compose run --rm -w /app node sh -c \
   "npx create-next-app@latest . --typescript --app --no-git --tailwind --src-dir=false --import-alias='@/*' --yes"
 
-# 10. Apply frontend files and start node
+# 8. Apply custom frontend source files and restart the node container
 bash scripts/apply-frontend.sh
-docker compose up -d --force-recreate node
-
-# 11. Copy frontend env
 cp patches/frontend/.env.local frontend/.env.local
+docker compose up -d --force-recreate node
 ```
 
----
+### Accessing the App
 
-## Seeded Users
+| Service  | URL                   |
+|----------|-----------------------|
+| Frontend | http://localhost:3000 |
+| Backend  | http://localhost:8000 |
 
-| Name            | Email                  | Password | Role     |
-|-----------------|------------------------|----------|----------|
-| Иван Иванов     | ivan@admin.local       | password | owner    |
-| Елена Петрова   | elena@frontend.local   | password | frontend |
-| Петър Георгиев  | petar@backend.local    | password | backend  |
+### Demo Accounts
 
-To add more users, edit [patches/backend/database/seeders/UserSeeder.php](patches/backend/database/seeders/UserSeeder.php) and run `make seed`.
+All demo accounts use the password **`password`**.
 
----
+| Name            | Email                  | Role     |
+|-----------------|------------------------|----------|
+| Иван Иванов     | ivan@admin.local       | owner    |
+| Елена Петрова   | elena@frontend.local   | frontend |
+| Петър Георгиев  | petar@backend.local    | backend  |
 
-## Available Roles
-
-Defined in `App\Enums\UserRole`:
-
-| Value      | Description                                             |
-|------------|---------------------------------------------------------|
-| `owner`    | Full access — approve/reject tools, view audit log      |
-| `backend`  | Backend Developer                                       |
-| `frontend` | Frontend Developer                                      |
-| `qa`       | QA Engineer                                             |
-| `designer` | Designer                                                |
-| `pm`       | Product Manager                                         |
-
-Default role for new users: `backend`
-
----
-
-## Tool Status Workflow
-
-```
-[Non-owner creates] → pending
-[Owner creates]     → approved  (automatic)
-
-pending ──→ approved  (owner: POST /api/tools/{id}/approve)
-        └─→ rejected  (owner: POST /api/tools/{id}/reject)
-```
-
-Public tools listing shows only `approved` tools.
-Admin Panel (`?status=all`) shows all statuses to owner.
-
----
-
-## API Endpoints
-
-### Auth
-
-| Method | Path                   | Auth | Description           |
-|--------|------------------------|------|-----------------------|
-| GET    | `/sanctum/csrf-cookie` | No   | Fetch CSRF token      |
-| POST   | `/auth/login`          | No   | Log in (session)      |
-| POST   | `/auth/logout`         | Yes  | Log out               |
-| GET    | `/api/me`              | Yes  | Current user info     |
-
-### Tools
-
-| Method | Path                          | Auth  | Description                                         |
-|--------|-------------------------------|-------|-----------------------------------------------------|
-| GET    | `/api/tools`                  | Yes   | List tools (`?search=` `?role=` `?category=` `?tag=` `?status=` `?page=`) |
-| POST   | `/api/tools`                  | Yes   | Create tool                                         |
-| GET    | `/api/tools/{id}`             | Yes   | Tool detail                                         |
-| PUT    | `/api/tools/{id}`             | Yes   | Update tool (any authenticated user)                |
-| DELETE | `/api/tools/{id}`             | Yes   | Delete tool (author or owner)                       |
-| POST   | `/api/tools/{id}/approve`     | Owner | Approve pending tool                                |
-| POST   | `/api/tools/{id}/reject`      | Owner | Reject pending tool                                 |
-
-### Categories & Tags
-
-| Method | Path              | Auth | Description                 |
-|--------|-------------------|------|-----------------------------|
-| GET    | `/api/categories` | Yes  | List categories (cached)    |
-| POST   | `/api/categories` | Yes  | Create category             |
-| GET    | `/api/tags`       | Yes  | List tags (cached)          |
-| POST   | `/api/tags`       | Yes  | Create tag (find or create) |
-
-### Audit Log
-
-| Method | Path                        | Owner only | Description                              |
-|--------|-----------------------------|------------|------------------------------------------|
-| GET    | `/api/audit-logs`           | Yes        | Paginated log (`?action=` `?search=` `?from=` `?to=` `?user_id=` `?page=`) |
-| DELETE | `/api/audit-logs/{id}`      | Yes        | Delete a single audit log entry          |
-
----
-
-## Frontend Pages
-
-| Route                           | Access | Description                                            |
-|---------------------------------|--------|--------------------------------------------------------|
-| `/login`                        | Public | Login page                                             |
-| `/dashboard`                    | Auth   | Tool listing (approved only, filters: search/role/category) |
-| `/dashboard/tools/new`          | Auth   | Create new tool                                        |
-| `/dashboard/tools/[id]`         | Auth   | Tool detail + edit/delete actions                      |
-| `/dashboard/tools/edit/[id]`    | Auth   | Edit tool form                                         |
-| `/dashboard/admin`              | Owner  | Admin Panel — approve/reject pending tools             |
-| `/dashboard/admin/audit`        | Owner  | Audit Log — activity feed with filters and per-entry delete |
-| `/dashboard/settings`           | Auth   | User settings — Two-Factor Authentication              |
-
-> **Turbopack workaround:** The edit route lives at `edit/[id]` (not `[id]/edit`). A rewrite in `next.config.ts` maps `/dashboard/tools/:id/edit` → `/dashboard/tools/edit/:id`.
-
----
-
-## Redis Cache
-
-| Key                     | TTL    | Invalidated on                     |
-|-------------------------|--------|------------------------------------|
-| `categories:all`        | 3600s  | New category created               |
-| `tags:all`              | 3600s  | New tag or tool create/update      |
-| `tools:approved:page1`  | 300s   | Any tool mutation                  |
+### Day-to-day Commands
 
 ```bash
-# Inspect cache (DB 1)
-docker compose exec redis redis-cli -n 1 KEYS "*"
-# Flush cache
+# Start / stop
+docker compose up -d
+docker compose down
+
+# Apply source file changes
+bash scripts/apply-backend.sh
+bash scripts/apply-frontend.sh && docker compose up -d --force-recreate node
+
+# Database
+docker compose exec php php artisan migrate
+docker compose exec php php artisan db:seed
+docker compose exec php php artisan migrate:fresh --seed
+
+# Cache
+docker compose exec php php artisan config:clear && php artisan route:clear
 docker compose exec redis redis-cli -n 1 FLUSHDB
+
+# Logs
+docker compose logs -f node
+docker compose logs -f php
 ```
-
----
-
-## Role Middleware
-
-```php
-// routes/web.php
-Route::post('/api/tools/{tool}/approve', ...)->middleware('role:owner');
-Route::get('/api/audit-logs', ...)->middleware('role:owner');
-```
-
-Frontend `middleware.ts` (Edge Runtime) protects `/dashboard/admin/*`:
-redirects to `/login` if unauthenticated, to `/dashboard` if role ≠ owner.
-
----
-
-## Common Commands
-
-```bash
-make up              # Start all containers
-make down            # Stop all containers
-make logs            # Follow logs
-make shell-php       # Open PHP container shell
-make migrate         # Run migrations
-make seed            # Run seeders
-make fresh           # Fresh migrate + seed
-make cache-clear     # Clear Laravel caches
-make apply-backend   # Copy patches/backend/ → backend/
-make apply-frontend  # Copy patches/frontend/ → frontend/ + clear .next + restart node
-```
-
-> **Always use `make apply-frontend`** (or `bash scripts/apply-frontend.sh && docker compose up -d --force-recreate node`) after editing files in `patches/frontend/`.
 
 ---
 
@@ -248,84 +127,54 @@ vibecode-academy-project/
 ├── docker-compose.yml
 ├── Makefile
 ├── README.md
+├── CLAUDE.md                          ← AI development constitution
 │
 ├── docker/
 │   ├── nginx/default.conf
 │   └── php/Dockerfile + php.ini
 │
 ├── scripts/
-│   ├── install.sh             ← one-command setup
-│   ├── apply-backend.sh       ← copies patch files into backend/
-│   └── apply-frontend.sh      ← copies patch files into frontend/ + clears cache
+│   ├── apply-backend.sh               ← copies patches/backend/ → backend/
+│   └── apply-frontend.sh              ← copies patches/frontend/ → frontend/ + restarts node
 │
-├── patches/                   ← SOURCE OF TRUTH — edit only here
-│   ├── laravel.env
+├── patches/                           ← SOURCE OF TRUTH — always edit here, never in backend/ or frontend/
+│   ├── laravel.env                    ← backend .env template (never committed)
 │   ├── backend/
 │   │   ├── app/
 │   │   │   ├── Enums/UserRole.php
 │   │   │   ├── Http/
-│   │   │   │   ├── Controllers/ToolController.php
-│   │   │   │   ├── Controllers/AuditLogController.php
-│   │   │   │   ├── Controllers/CategoryController.php
-│   │   │   │   ├── Controllers/TagController.php
+│   │   │   │   ├── Controllers/       ← ToolController, AuditLogController, CategoryController, TagController
 │   │   │   │   ├── Middleware/EnsureRole.php
-│   │   │   │   ├── Requests/StoreToolRequest.php
-│   │   │   │   ├── Requests/UpdateToolRequest.php
-│   │   │   │   ├── Requests/StoreCategoryRequest.php
-│   │   │   │   └── Resources/ToolResource.php, CategoryResource.php, TagResource.php
-│   │   │   ├── Models/
-│   │   │   │   ├── User.php
-│   │   │   │   ├── Tool.php
-│   │   │   │   ├── AuditLog.php           ← record() static helper
-│   │   │   │   ├── Category.php, Tag.php
-│   │   │   │   └── ToolRole.php, ToolScreenshot.php, ToolExample.php
+│   │   │   │   ├── Requests/          ← StoreToolRequest, UpdateToolRequest, StoreCategoryRequest
+│   │   │   │   └── Resources/         ← ToolResource, CategoryResource, TagResource
+│   │   │   ├── Models/                ← User, Tool, AuditLog, Category, Tag, ToolRole, Screenshot, Example
 │   │   │   ├── Policies/ToolPolicy.php
 │   │   │   └── Providers/FortifyServiceProvider.php
-│   │   ├── bootstrap/app.php, providers.php
 │   │   ├── config/cors.php, fortify.php
 │   │   ├── database/
-│   │   │   ├── migrations/
-│   │   │   │   ├── 2024_01_01_…_add_role_to_users_table.php
-│   │   │   │   ├── 2024_01_02_…_create_categories_table.php
-│   │   │   │   ├── 2024_01_02_…_create_tags_table.php
-│   │   │   │   ├── 2024_01_02_…_create_tools_table.php
-│   │   │   │   ├── 2024_01_02_…_create_tool_categories_table.php
-│   │   │   │   ├── 2024_01_02_…_create_tool_roles_table.php
-│   │   │   │   ├── 2024_01_02_…_create_tool_tags_table.php
-│   │   │   │   ├── 2024_01_02_…_create_tool_screenshots_table.php
-│   │   │   │   ├── 2024_01_02_…_create_tool_examples_table.php
-│   │   │   │   ├── 2024_01_03_…_add_two_factor_to_users_table.php
-│   │   │   │   ├── 2024_01_04_…_update_tools_status_enum.php
-│   │   │   │   ├── 2024_01_05_…_create_audit_logs_table.php
-│   │   │   │   └── 2024_01_06_…_add_request_info_to_audit_logs_table.php
-│   │   │   └── seeders/
-│   │   │       ├── DatabaseSeeder.php, UserSeeder.php
-│   │   │       ├── CategorySeeder.php, TagSeeder.php, ToolSeeder.php
+│   │   │   ├── migrations/            ← 13 migrations (roles, tools, categories, tags, 2FA, audit log)
+│   │   │   └── seeders/               ← User, Category, Tag, Tool seeders
 │   │   └── routes/web.php
 │   └── frontend/
-│       ├── .env.local
 │       ├── next.config.ts
 │       ├── middleware.ts              ← Edge Runtime — protects /dashboard/admin/*
 │       ├── app/
 │       │   ├── layout.tsx             ← Space Grotesk + DM Sans fonts
-│       │   ├── globals.css            ← single CSS file, dark design system
+│       │   ├── globals.css            ← single CSS file, full dark design system
 │       │   ├── login/page.tsx
 │       │   └── dashboard/
-│       │       ├── page.tsx           ← tools listing
-│       │       ├── tools/
-│       │       │   ├── new/page.tsx
-│       │       │   ├── [id]/page.tsx
-│       │       │   └── edit/[id]/page.tsx
-│       │       ├── admin/
-│       │       │   ├── page.tsx       ← Admin Panel (approve/reject)
-│       │       │   └── audit/page.tsx ← Audit Log
-│       │       └── settings/page.tsx  ← Two-Factor Auth settings
-│       ├── components/
-│       │   └── Sidebar.tsx            ← navigation + admin/audit links for owner
+│       │       ├── page.tsx           ← tools listing (approved only)
+│       │       ├── tools/new/page.tsx
+│       │       ├── tools/[id]/page.tsx
+│       │       ├── tools/edit/[id]/page.tsx
+│       │       ├── admin/page.tsx     ← Admin Panel (approve / reject)
+│       │       ├── admin/audit/page.tsx  ← Audit Log feed
+│       │       └── settings/page.tsx  ← Two-Factor Auth
+│       ├── components/Sidebar.tsx     ← navigation; admin links visible to owner only
 │       └── lib/
-│           ├── auth.ts
-│           └── tools.ts               ← all API functions incl. audit log
+│           ├── auth.ts                ← login, logout, getUser, 2FA helpers
+│           └── tools.ts               ← getTools, approveTool, rejectTool, getAuditLogs, …
 │
-├── backend/   ← created by install.sh (do not edit directly)
-└── frontend/  ← created by install.sh (do not edit directly)
+├── backend/                           ← generated by install — do not edit directly
+└── frontend/                          ← generated by install — do not edit directly
 ```

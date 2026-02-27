@@ -81,6 +81,10 @@ return [
         Features::emailVerification(),
         Features::updateProfileInformation(),
         Features::updatePasswords(),
+        Features::twoFactorAuthentication([
+            'confirm'         => true,   // requires confirmation code after setup
+            'confirmPassword' => false,  // skip password re-entry (no /auth/confirm-password in SPA)
+        ]),
     ],
 
 ];

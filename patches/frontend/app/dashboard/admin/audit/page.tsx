@@ -10,7 +10,7 @@ import { getAuditLogs, deleteAuditLog, AuditEntry, AuditLogFilters } from '@/lib
 
 const actionMeta: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   created: {
-    label: 'Добавен',
+    label: 'Добави',
     color: '#3b82f6',
     bg: 'rgba(59,130,246,0.12)',
     icon: (
@@ -20,7 +20,7 @@ const actionMeta: Record<string, { label: string; color: string; bg: string; ico
     ),
   },
   updated: {
-    label: 'Редактиран',
+    label: 'Редактира',
     color: '#f97316',
     bg: 'rgba(249,115,22,0.12)',
     icon: (
@@ -31,7 +31,7 @@ const actionMeta: Record<string, { label: string; color: string; bg: string; ico
     ),
   },
   approved: {
-    label: 'Одобрен',
+    label: 'Одобри',
     color: '#22c55e',
     bg: 'rgba(34,197,94,0.12)',
     icon: (
@@ -41,7 +41,7 @@ const actionMeta: Record<string, { label: string; color: string; bg: string; ico
     ),
   },
   rejected: {
-    label: 'Отказан',
+    label: 'Отхвърли',
     color: '#ef4444',
     bg: 'rgba(239,68,68,0.12)',
     icon: (
@@ -51,7 +51,7 @@ const actionMeta: Record<string, { label: string; color: string; bg: string; ico
     ),
   },
   deleted: {
-    label: 'Изтрит',
+    label: 'Изтри',
     color: '#94a3b8',
     bg: 'rgba(148,163,184,0.10)',
     icon: (
@@ -103,6 +103,13 @@ function absoluteTime(iso: string): string {
   })
 }
 
+function monoTime(iso: string): string {
+  const d    = new Date(iso)
+  const time = d.toLocaleTimeString('bg-BG', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+  const date = d.toLocaleDateString('bg-BG',  { day: '2-digit', month: '2-digit', year: 'numeric' })
+  return `${time} · ${date}`
+}
+
 function getUserInitials(name: string): string {
   return name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2)
 }
@@ -127,6 +134,15 @@ function parseOS(ua: string | null): string {
   return ''
 }
 
+function getFaviconUrl(url: string): string {
+  try {
+    const domain = new URL(url).hostname
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+  } catch {
+    return ''
+  }
+}
+
 function truncate(text: string | null, max = 55): string {
   if (!text) return '—'
   return text.length > max ? text.slice(0, max) + '…' : text
@@ -134,7 +150,7 @@ function truncate(text: string | null, max = 55): string {
 
 const ChevronIcon = ({ open }: { open: boolean }) => (
   <svg
-    width="12" height="12" viewBox="0 0 24 24" fill="none"
+    width="14" height="14" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
     style={{ transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
   >
@@ -143,7 +159,7 @@ const ChevronIcon = ({ open }: { open: boolean }) => (
 )
 
 const TrashIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
   >
     <polyline points="3 6 5 6 21 6"/>
@@ -221,7 +237,7 @@ export default function AuditLogPage() {
   }
 
   return (
-    <div className="page">
+    <div className="page audit-log-page">
       {/* Header */}
       <div className="tools-header">
         <div>
@@ -241,7 +257,7 @@ export default function AuditLogPage() {
         />
 
         <select
-          className="filter-select"
+          className="filter-select audit-glass-select"
           value={actionFilter}
           onChange={e => setActionFilter(e.target.value)}
         >
@@ -251,21 +267,30 @@ export default function AuditLogPage() {
           ))}
         </select>
 
-        <input
-          className="filter-input audit-date-input"
-          type="date"
-          value={from}
-          onChange={e => setFrom(e.target.value)}
-          title="От дата"
-        />
-
-        <input
-          className="filter-input audit-date-input"
-          type="date"
-          value={to}
-          onChange={e => setTo(e.target.value)}
-          title="До дата"
-        />
+        <div className="audit-date-range">
+          <span className="audit-date-range-label">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Период
+          </span>
+          <span className="audit-date-range-sublabel">От</span>
+          <input
+            type="date"
+            value={from}
+            onChange={e => setFrom(e.target.value)}
+          />
+          <span className="audit-date-range-sep">—</span>
+          <span className="audit-date-range-sublabel">До</span>
+          <input
+            type="date"
+            value={to}
+            onChange={e => setTo(e.target.value)}
+          />
+        </div>
 
         {hasFilters && (
           <button
@@ -310,13 +335,9 @@ export default function AuditLogPage() {
                 </div>
 
                 {/* Card */}
-                <div className="audit-card">
+                <div className="audit-card card--glass">
                   {/* Avatar */}
-                  <div
-                    className="audit-avatar"
-                    style={{ background: `${roleColor}22`, border: `1.5px solid ${roleColor}55`, color: roleColor }}
-                    title={entry.user_name}
-                  >
+                  <div className="audit-avatar" title={entry.user_name}>
                     {getUserInitials(entry.user_name)}
                   </div>
 
@@ -330,12 +351,17 @@ export default function AuditLogPage() {
                       >
                         {entry.user_role}
                       </span>
-                      <span
-                        className="audit-action-badge"
-                        style={{ background: meta.bg, color: meta.color }}
-                      >
+                      <span className="audit-action-text">
                         {meta.label}
                       </span>
+                      {entry.tool_url && (
+                        <img
+                          src={getFaviconUrl(entry.tool_url)}
+                          alt=""
+                          className="audit-tool-favicon"
+                          onError={(e) => (e.currentTarget.style.display = 'none')}
+                        />
+                      )}
                       {entry.tool_id ? (
                         <Link href={`/dashboard/tools/${entry.tool_id}`} className="audit-tool-link">
                           {entry.tool_name}
@@ -343,6 +369,28 @@ export default function AuditLogPage() {
                       ) : (
                         <span className="audit-tool-deleted">{entry.tool_name}</span>
                       )}
+                      <div className="audit-right-inline">
+                        <span className="audit-time-mono" title={absoluteTime(entry.created_at)}>
+                          {monoTime(entry.created_at)}
+                        </span>
+                        {hasDetails && (
+                          <button
+                            className={`audit-expand-btn${isOpen ? ' open' : ''}`}
+                            onClick={() => setExpandedId(isOpen ? null : entry.id)}
+                            title={isOpen ? 'Скрий детайли' : 'Покажи детайли'}
+                          >
+                            <ChevronIcon open={isOpen} />
+                          </button>
+                        )}
+                        <button
+                          className={`audit-delete-btn${isConfirmingDelete ? ' active' : ''}`}
+                          onClick={() => setConfirmDeleteId(isConfirmingDelete ? null : entry.id)}
+                          title="Изтрий запис"
+                          disabled={isDeleting}
+                        >
+                          <TrashIcon />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Expanded details */}
@@ -420,29 +468,6 @@ export default function AuditLogPage() {
                     )}
                   </div>
 
-                  {/* Right: timestamp + expand + delete buttons */}
-                  <div className="audit-right">
-                    <span className="audit-time" title={absoluteTime(entry.created_at)}>
-                      {relativeTime(entry.created_at)}
-                    </span>
-                    {hasDetails && (
-                      <button
-                        className={`audit-expand-btn${isOpen ? ' open' : ''}`}
-                        onClick={() => setExpandedId(isOpen ? null : entry.id)}
-                        title={isOpen ? 'Скрий детайли' : 'Покажи детайли'}
-                      >
-                        <ChevronIcon open={isOpen} />
-                      </button>
-                    )}
-                    <button
-                      className={`audit-delete-btn${isConfirmingDelete ? ' active' : ''}`}
-                      onClick={() => setConfirmDeleteId(isConfirmingDelete ? null : entry.id)}
-                      title="Изтрий запис"
-                      disabled={isDeleting}
-                    >
-                      <TrashIcon />
-                    </button>
-                  </div>
                 </div>
               </div>
             )

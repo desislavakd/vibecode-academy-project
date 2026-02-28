@@ -71,8 +71,8 @@ export interface ToolFormData {
   name: string
   url: string
   description: string
-  how_to_use?: string
-  documentation_url?: string
+  how_to_use?: string | null
+  documentation_url?: string | null
   categories?: number[]
   roles?: string[]
   tags?: string[]
@@ -201,6 +201,7 @@ export interface AuditEntry {
   action: 'created' | 'updated' | 'approved' | 'rejected' | 'deleted'
   tool_id: number | null
   tool_name: string
+  tool_url: string | null
   metadata: Record<string, { old: string | null; new: string | null }> | null
   ip_address: string | null
   user_agent: string | null

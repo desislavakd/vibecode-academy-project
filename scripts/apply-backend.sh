@@ -57,6 +57,8 @@ cp "$PATCHES/database/migrations/2024_01_05_000000_create_audit_logs_table.php" 
    "$BACKEND/database/migrations/2024_01_05_000000_create_audit_logs_table.php"
 cp "$PATCHES/database/migrations/2024_01_06_000000_add_request_info_to_audit_logs_table.php" \
    "$BACKEND/database/migrations/2024_01_06_000000_add_request_info_to_audit_logs_table.php"
+cp "$PATCHES/database/migrations/2024_01_07_000000_add_tool_url_to_audit_logs_table.php" \
+   "$BACKEND/database/migrations/2024_01_07_000000_add_tool_url_to_audit_logs_table.php"
 
 # Seeders
 mkdir -p "$BACKEND/database/seeders"

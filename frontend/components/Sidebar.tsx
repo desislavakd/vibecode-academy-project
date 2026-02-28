@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { logout, getUser } from '@/lib/auth'
+import { getTools } from '@/lib/tools'
 
 const HouseIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -42,11 +43,17 @@ const settingsNavItem = { href: '/dashboard/settings', label: 'Настройк�
 export default function Sidebar() {
   const pathname = usePathname()
   const router   = useRouter()
-  const [isOwner, setIsOwner] = useState(false)
+  const [isOwner, setIsOwner]       = useState(false)
+  const [pendingCount, setPendingCount] = useState(0)
 
   useEffect(() => {
     getUser().then(user => {
-      if (user.role === 'owner') setIsOwner(true)
+      if (user.role === 'owner') {
+        setIsOwner(true)
+        getTools({ status: 'pending' })
+          .then(res => setPendingCount(res.meta.total))
+          .catch(() => {})
+      }
     }).catch(() => {})
   }, [])
 
@@ -86,6 +93,11 @@ export default function Sidebar() {
           >
             <span className="sidebar-icon">{item.icon}</span>
             {item.label}
+            {item.href === '/dashboard/admin' && pendingCount > 0 && (
+              <span className="sidebar-badge">
+                {pendingCount > 99 ? '99+' : pendingCount}
+              </span>
+            )}
           </Link>
         ))}
       </nav>

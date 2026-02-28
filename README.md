@@ -16,6 +16,7 @@ ToolHive gives every team member a single place to add the AI tools they rely on
 - **Two-factor authentication** — TOTP-based 2FA that each user controls from their Settings page.
 - **Redis caching** — Tools, categories, and tags are cached for fast page loads; cache is invalidated automatically on writes.
 - **Dark design system** — Consistent dark UI with Space Grotesk headings and DM Sans body text.
+- **Personalized dashboard** — each user's home page shows role-tailored tool recommendations in a scrollable carousel alongside quick navigation and recent activity.
 
 ---
 
@@ -212,7 +213,7 @@ vibecode-academy-project/
 │   │   │   └── Providers/FortifyServiceProvider.php
 │   │   ├── config/cors.php, fortify.php
 │   │   ├── database/
-│   │   │   ├── migrations/            ← 13 migrations (roles, tools, categories, tags, 2FA, audit log)
+│   │   │   ├── migrations/            ← 14 migrations (roles, tools, categories, tags, 2FA, audit log)
 │   │   │   └── seeders/               ← User, Category, Tag, Tool seeders
 │   │   └── routes/web.php
 │   └── frontend/
@@ -223,14 +224,16 @@ vibecode-academy-project/
 │       │   ├── globals.css            ← single CSS file, full dark design system
 │       │   ├── login/page.tsx
 │       │   └── dashboard/
-│       │       ├── page.tsx           ← tools listing (approved only)
-│       │       ├── tools/new/page.tsx
-│       │       ├── tools/[id]/page.tsx
-│       │       ├── tools/edit/[id]/page.tsx
+│       │       ├── page.tsx           ← dashboard home — profile card, quick actions, recommended tools
+│       │       └── tools/
+│       │           ├── page.tsx       ← tool catalogue (approved, filterable by role / category / tag)
+│       │           ├── new/page.tsx
+│       │           ├── [id]/page.tsx
+│       │           └── edit/[id]/page.tsx
 │       │       ├── admin/page.tsx     ← Admin Panel (approve / reject)
 │       │       ├── admin/audit/page.tsx  ← Audit Log feed
 │       │       └── settings/page.tsx  ← Two-Factor Auth
-│       ├── components/Sidebar.tsx     ← navigation; admin links visible to owner only
+│       ├── components/Sidebar.tsx     ← navigation; admin link visible to owner only + pending-count badge
 │       └── lib/
 │           ├── auth.ts                ← login, logout, getUser, 2FA helpers
 │           └── tools.ts               ← getTools, approveTool, rejectTool, getAuditLogs, …

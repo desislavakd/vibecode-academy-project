@@ -210,6 +210,10 @@ input:focus {
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
+  box-shadow:
+    0 0 0 2px rgba(249, 115, 22, 0.35),
+    0 0 16px rgba(249, 115, 22, 0.25),
+    0 0 32px rgba(236, 72, 153, 0.12);
 }
 
 .profile-name {
@@ -970,8 +974,27 @@ select option {
 }
 
 .sidebar-item.active {
-  background: linear-gradient(135deg, #f97316, #ef4444, #ec4899);
+  background: linear-gradient(135deg, rgba(249,115,22,0.22), rgba(239,68,68,0.14), rgba(236,72,153,0.1));
+  color: var(--color-text);
+  border: 1px solid rgba(249, 115, 22, 0.28);
+  box-shadow: inset 0 0 20px rgba(249, 115, 22, 0.06), 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.sidebar-badge {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f97316, #ef4444);
   color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .sidebar-icon {
@@ -1069,11 +1092,15 @@ select option {
   font-size: 1.1rem;
   font-weight: 600;
   text-decoration: none;
-  transition: opacity 0.15s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 12px rgba(249, 115, 22, 0.2);
 }
 
 .quick-action-btn:hover {
-  opacity: 0.88;
+  transform: scale(1.04) translateY(-2px);
+  box-shadow:
+    0 6px 24px rgba(249, 115, 22, 0.4),
+    0 0 48px rgba(236, 72, 153, 0.18);
 }
 
 .quick-action-icon {
@@ -1085,7 +1112,7 @@ select option {
 .dashboard-bottom-row {
   display: flex;
   gap: 1.5rem;
-  align-items: flex-start;
+  align-items: stretch;
   margin-top: 2rem;
   flex-wrap: wrap;
 }
@@ -1093,6 +1120,8 @@ select option {
 .dashboard-bottom-left {
   flex: 1;
   min-width: 220px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ─── Recent Activity ─────────────────────────────────────────────── */
@@ -1112,6 +1141,23 @@ select option {
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
+  position: relative;
+}
+
+.activity-list::before {
+  content: '';
+  position: absolute;
+  left: 18px;
+  top: 19px;
+  bottom: 19px;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    rgba(34, 197, 94, 0.45),
+    rgba(139, 92, 246, 0.45),
+    rgba(249, 115, 22, 0.45)
+  );
+  z-index: 0;
 }
 
 .activity-item {
@@ -1130,6 +1176,8 @@ select option {
   font-size: 1rem;
   font-weight: 700;
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .activity-icon--green  { background: rgba(34, 197, 94, 0.15);  color: #22c55e; }
@@ -1150,8 +1198,13 @@ select option {
 }
 
 .activity-time {
-  font-size: 0.825rem;
+  font-size: 0.75rem;
   color: var(--color-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 99px;
+  padding: 0.1rem 0.5rem;
+  display: inline-block;
 }
 
 /* ─── @property for animated border gradient ─────────────────────── */
@@ -1929,7 +1982,7 @@ select option {
 .audit-card {
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.85rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -1941,20 +1994,27 @@ select option {
 
 .audit-card:hover {
   border-color: rgba(249, 115, 22, 0.3);
+  box-shadow:
+    0 0 0 1px rgba(249, 115, 22, 0.1),
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 32px rgba(249, 115, 22, 0.08);
 }
 
 /* Avatar circle */
 .audit-avatar {
-  width: 36px;
-  height: 36px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   font-weight: 700;
   flex-shrink: 0;
   letter-spacing: 0.02em;
+  background: linear-gradient(135deg, #f97316, #ef4444, #ec4899);
+  border: none;
+  color: #fff;
 }
 
 /* Content area */
@@ -1970,12 +2030,13 @@ select option {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.45rem;
-  font-size: 0.95rem;
+  gap: 1.2rem;
+  font-size: 1.4rem;
 }
 
 .audit-user {
   font-weight: 600;
+  font-size: 1.1rem;
   color: var(--color-text);
 }
 
@@ -1997,14 +2058,14 @@ select option {
 }
 
 .audit-tool-link {
-  color: var(--color-primary);
+  color: var(--color-text);
   font-weight: 500;
   text-decoration: none;
   transition: color 0.15s;
 }
 
 .audit-tool-link:hover {
-  color: #fb923c;
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: underline;
 }
 
@@ -2013,12 +2074,12 @@ select option {
   font-style: italic;
 }
 
-/* Right column: timestamp + expand button */
-.audit-right {
+/* Right group inside audit-main — timestamp + buttons, pushed to far right */
+.audit-right-inline {
+  margin-left: auto;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 0.5rem;
   flex-shrink: 0;
 }
 
@@ -2031,8 +2092,8 @@ select option {
 
 /* Expand/collapse chevron button */
 .audit-expand-btn {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -2139,8 +2200,8 @@ select option {
 
 /* Per-row trash delete button */
 .audit-delete-btn {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -2185,10 +2246,62 @@ select option {
   min-width: 120px;
 }
 
-/* Date inputs */
-.audit-date-input {
-  max-width: 160px;
+/* Unified period date-range control */
+.audit-date-range {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.625rem 0.85rem;
+  background: rgba(30, 41, 59, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition: border-color 0.2s;
+}
+.audit-date-range:focus-within {
+  border-color: rgba(249, 115, 22, 0.45);
+}
+.audit-date-range-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--color-text);
+  white-space: nowrap;
+  padding-right: 0.5rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+.audit-date-range-sublabel {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+.audit-date-range-sep {
+  color: var(--color-text);
+  font-size: 0.9rem;
+  padding: 0 0.1rem;
+}
+.audit-date-range input[type="date"] {
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  outline: none;
   color-scheme: dark;
+  padding: 0;
+  width: 122px;
+}
+.audit-date-range input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.55);
+  cursor: pointer;
+  opacity: 0.7;
+}
+.audit-date-range input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }
 
 /* Responsive */
@@ -2202,12 +2315,231 @@ select option {
   .audit-main {
     font-size: 0.875rem;
   }
-  .audit-date-input {
-    max-width: 100%;
-    flex: 1 1 120px;
+  .audit-date-range {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 0.5rem 0.75rem;
+    gap: 0.4rem;
+    width: 100%;
+  }
+  .audit-date-range input[type="date"] {
+    width: 110px;
   }
   .audit-diff-old,
   .audit-diff-new {
     max-width: 130px;
   }
+}
+
+/* ─── Audit Log page ──────────────────────────────────────────────── */
+.audit-log-page {
+  background:
+    radial-gradient(ellipse 70% 50% at 80% 5%,  rgba(99, 102, 241, 0.09) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 15% 85%, rgba(139, 92, 246, 0.07) 0%, transparent 50%);
+}
+
+/* Glass-styled action select */
+.audit-glass-select {
+  background: rgba(30, 41, 59, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-text);
+}
+.audit-glass-select:focus {
+  border-color: rgba(249, 115, 22, 0.45);
+  outline: none;
+}
+.audit-glass-select option {
+  background: #1e293b;
+  color: var(--color-text);
+}
+
+/* Inline action icon (sits before user name in audit-main row) */
+.audit-inline-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+/* Tool favicon (shown between action text and tool name) */
+.audit-tool-favicon {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+/* Action as plain white text (no badge pill, no color) */
+.audit-action-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-text);
+}
+
+/* Monospace absolute timestamp */
+.audit-time-mono {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+  line-height: 1.4;
+}
+
+/* ─── Dashboard home — gradient background ────────────────────────── */
+.dashboard-home-page {
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 5%,  rgba(99, 102, 241, 0.09) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 85% 85%, rgba(139, 92, 246, 0.07) 0%, transparent 50%);
+}
+
+/* ─── Glassmorphism card modifier ────────────────────────────────── */
+.card--glass {
+  background: rgba(30, 41, 59, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ─── Staggered entrance animations ─────────────────────────────── */
+@keyframes dashFadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.dash-fade-1 {
+  opacity: 0;
+  animation: dashFadeUp 0.45s ease forwards;
+  animation-delay: 0.05s;
+}
+
+.dash-fade-2 {
+  opacity: 0;
+  animation: dashFadeUp 0.45s ease forwards;
+  animation-delay: 0.15s;
+}
+
+.dash-fade-3 {
+  opacity: 0;
+  animation: dashFadeUp 0.45s ease forwards;
+  animation-delay: 0.28s;
+}
+
+.dash-fade-4 {
+  opacity: 0;
+  animation: dashFadeUp 0.45s ease forwards;
+  animation-delay: 0.42s;
+}
+
+/* ── Dashboard recommended section ── */
+.dash-recommended {
+  margin-top: 1.5rem;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.dash-recommended-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;
+}
+.dash-recommended-carousel {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.dash-recommended-track {
+  display: flex;
+  gap: 0.65rem;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.dash-recommended-track::-webkit-scrollbar {
+  display: none;
+}
+.dash-reco-card {
+  flex: 0 0 196px;
+  min-width: 0;
+  overflow: hidden;
+  scroll-snap-align: start;
+  height: 100%;
+}
+.dash-reco-card .tool-card-glass {
+  height: 100%;
+  box-sizing: border-box;
+}
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 52px;
+  border-radius: 8px;
+  background: rgba(241, 245, 249, 0.92);
+  border: none;
+  color: #0f172a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  line-height: 1;
+  z-index: 3;
+  transition: background 0.15s, box-shadow 0.15s;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.carousel-arrow:hover {
+  background: #f1f5f9;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+.carousel-arrow--left {
+  left: -4px;
+}
+.carousel-arrow--right {
+  right: -4px;
+}
+/* fade hint — shows there's more content beyond the edge */
+.dash-recommended-carousel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 48px;
+  height: 100%;
+  background: linear-gradient(to right, transparent, rgba(15, 23, 42, 0.7));
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.dash-recommended-carousel.has-more::after {
+  opacity: 1;
+}
+.tool-card-glass--compact {
+  padding: 1rem;
+  min-height: 0;
+  gap: 0.65rem;
+}
+.tool-card-desc--compact {
+  -webkit-line-clamp: 2;
+  font-size: 0.88rem;
 }

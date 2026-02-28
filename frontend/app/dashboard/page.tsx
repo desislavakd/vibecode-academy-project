@@ -1,19 +1,77 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getUser, type User } from '@/lib/auth'
+import { getTools, type Tool } from '@/lib/tools'
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getFaviconUrl(url: string): string {
+  try { return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=32` }
+  catch { return '' }
+}
+
+const roleColors: Record<string, string> = {
+  owner:    '#6366f1',
+  backend:  '#22c55e',
+  frontend: '#3b82f6',
+  qa:       '#f97316',
+  designer: '#ec4899',
+  pm:       '#eab308',
+}
+
+const catPalette = [
+  { bg: 'rgba(99,102,241,0.12)',  border: 'rgba(99,102,241,0.3)',  text: '#818cf8' },
+  { bg: 'rgba(34,197,94,0.12)',   border: 'rgba(34,197,94,0.3)',   text: '#4ade80' },
+  { bg: 'rgba(249,115,22,0.12)',  border: 'rgba(249,115,22,0.3)',  text: '#fb923c' },
+  { bg: 'rgba(236,72,153,0.12)',  border: 'rgba(236,72,153,0.3)',  text: '#f472b6' },
+  { bg: 'rgba(234,179,8,0.12)',   border: 'rgba(234,179,8,0.3)',   text: '#facc15' },
+]
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
-  const [time, setTime] = useState<string>('')
-  const [loading, setLoading] = useState(true)
+  const [user, setUser]               = useState<User | null>(null)
+  const [time, setTime]               = useState<string>('')
+  const [loading, setLoading]         = useState(true)
+  const [recommended, setRecommended] = useState<Tool[]>([])
+  const carouselRef                   = useRef<HTMLDivElement>(null)
+  const [canScrollLeft,  setCanScrollLeft]  = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  function updateArrows() {
+    const el = carouselRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 2)
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2)
+  }
+
+  function scrollCarousel(dir: 'left' | 'right') {
+    const el = carouselRef.current
+    if (!el) return
+    el.scrollBy({ left: dir === 'right' ? 160 : -160, behavior: 'smooth' })
+    setTimeout(updateArrows, 350)
+  }
+
+  useEffect(() => {
+    // rAF alone fires before flex layout is computed; double-rAF + 150ms ensure DOM is settled
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      updateArrows()
+      setTimeout(updateArrows, 150)
+    }))
+  }, [recommended])
 
   useEffect(() => {
     getUser()
-      .then(setUser)
+      .then(user => {
+        setUser(user)
+        getTools({ role: user.role })
+          .then(res => setRecommended(res.data.slice(0, 10)))
+          .catch(() => {})
+      })
       .catch(() => {
         router.push('/login')
       })
@@ -38,12 +96,12 @@ export default function DashboardPage() {
   if (!user) return null
 
   return (
-    <div className="page">
-      <h1 className="dashboard-greeting">
+    <div className="page dashboard-home-page">
+      <h1 className="dashboard-greeting dash-fade-1">
         Добре дошъл, <strong>{user.name}</strong>! Ти си с роля: <strong>{user.role}</strong>.
       </h1>
 
-      <div className="card" style={{ marginTop: '1.5rem' }}>
+      <div className="card card--glass dash-fade-2" style={{ marginTop: '1.5rem' }}>
         <div className="profile-card">
           <div className="profile-avatar-wrap">
             <div className="profile-avatar">
@@ -64,7 +122,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="dashboard-bottom-row">
+      <div className="dashboard-bottom-row dash-fade-3">
         {/* Quick Actions */}
         <div className="dashboard-bottom-left">
           <h2 className="quick-actions-title">Quick Actions</h2>
@@ -82,10 +140,84 @@ export default function DashboardPage() {
               Добави инструмент
             </Link>
           </div>
+
+          {/* Recommended for role */}
+          {recommended.length > 0 && (
+            <div className="dash-recommended dash-fade-4">
+              <h2 className="dash-recommended-title">
+                Препоръчани за {user.role}
+              </h2>
+              <div className={`dash-recommended-carousel${canScrollRight ? ' has-more' : ''}`}>
+                <div
+                  className="dash-recommended-track"
+                  ref={carouselRef}
+                  onScroll={updateArrows}
+                >
+                  {recommended.map(tool => {
+                    const cat     = tool.categories[0]
+                    const palette = cat ? catPalette[cat.id % catPalette.length] : null
+                    const favicon = getFaviconUrl(tool.url)
+                    return (
+                      <div key={tool.id} className="tool-card-wrapper dash-reco-card">
+                        <Link
+                          href={`/dashboard/tools/${tool.id}`}
+                          className="tool-card-glass tool-card-glass--compact"
+                        >
+                          <div className="tool-card-header">
+                            {favicon && (
+                              <img
+                                src={favicon}
+                                alt=""
+                                className="tool-card-favicon"
+                                onError={e => (e.currentTarget.style.display = 'none')}
+                              />
+                            )}
+                            <h3 className="tool-card-name">{tool.name}</h3>
+                          </div>
+                          <p className="tool-card-desc tool-card-desc--compact">{tool.description}</p>
+                          <div className="tool-card-footer">
+                            <div className="tool-card-roles">
+                              {tool.roles.slice(0, 2).map(role => (
+                                <span
+                                  key={role}
+                                  className="role-chip"
+                                  style={{
+                                    backgroundColor: roleColors[role] + '22',
+                                    color: roleColors[role],
+                                    border: `1px solid ${roleColors[role]}44`,
+                                  }}
+                                >{role}</span>
+                              ))}
+                            </div>
+                            {cat && palette && (
+                              <span
+                                className="cat-chip-colored"
+                                style={{
+                                  backgroundColor: palette.bg,
+                                  borderColor: palette.border,
+                                  color: palette.text,
+                                }}
+                              >{cat.name}</span>
+                            )}
+                          </div>
+                        </Link>
+                      </div>
+                    )
+                  })}
+                </div>
+                {canScrollLeft && (
+                  <button className="carousel-arrow carousel-arrow--left" onClick={() => scrollCarousel('left')}>‹</button>
+                )}
+                {canScrollRight && (
+                  <button className="carousel-arrow carousel-arrow--right" onClick={() => scrollCarousel('right')}>›</button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Recent Activity */}
-        <div className="card recent-activity-card">
+        <div className="card card--glass recent-activity-card">
           <h2 className="recent-activity-title">Recent Activity</h2>
           <div className="activity-list">
             <div className="activity-item">
@@ -112,6 +244,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
     </div>
   )
 }

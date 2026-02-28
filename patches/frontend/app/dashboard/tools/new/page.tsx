@@ -11,6 +11,15 @@ import {
 
 const ALL_ROLES = ['owner', 'backend', 'frontend', 'qa', 'designer', 'pm']
 
+const roleColors: Record<string, string> = {
+  owner:    '#f97316',
+  backend:  '#22c55e',
+  frontend: '#3b82f6',
+  qa:       '#f97316',
+  designer: '#ec4899',
+  pm:       '#eab308',
+}
+
 export default function NewToolPage() {
   const router = useRouter()
 
@@ -198,16 +207,29 @@ export default function NewToolPage() {
           <div className="form-group">
             <label>Препоръчителни роли</label>
             <div className="checkbox-group">
-              {ALL_ROLES.map(role => (
-                <label key={role} className="checkbox-item">
-                  <input
-                    type="checkbox"
-                    checked={selRoles.includes(role)}
-                    onChange={() => toggleRole(role)}
-                  />
-                  {role}
-                </label>
-              ))}
+              {ALL_ROLES.map(role => {
+                const checked = selRoles.includes(role)
+                const color   = roleColors[role]
+                return (
+                  <label
+                    key={role}
+                    className={`role-chip-checkbox${checked ? ' is-checked' : ''}`}
+                    style={{
+                      backgroundColor: color + (checked ? '33' : '15'),
+                      color: color,
+                      border: `1px solid ${color}${checked ? '66' : '30'}`,
+                      opacity: checked ? 1 : 0.55,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleRole(role)}
+                    />
+                    {role}
+                  </label>
+                )
+              })}
             </div>
           </div>
 
@@ -215,16 +237,22 @@ export default function NewToolPage() {
           <div className="form-group">
             <label>Категории</label>
             <div className="checkbox-group">
-              {categories.map(cat => (
-                <label key={cat.id} className="checkbox-item">
-                  <input
-                    type="checkbox"
-                    checked={selCategories.includes(cat.id)}
-                    onChange={() => toggleCategory(cat.id)}
-                  />
-                  {cat.name}
-                </label>
-              ))}
+              {categories.map(cat => {
+                const checked = selCategories.includes(cat.id)
+                return (
+                  <label
+                    key={cat.id}
+                    className={`cat-chip-checkbox${checked ? ' is-checked' : ''}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleCategory(cat.id)}
+                    />
+                    {cat.name}
+                  </label>
+                )
+              })}
             </div>
             {!showCatForm ? (
               <button

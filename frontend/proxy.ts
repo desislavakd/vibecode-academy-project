@@ -12,7 +12,7 @@ import type { NextRequest } from 'next/server'
  * All other /dashboard/* routes are passed through unchanged;
  * page-level guards (getUser()) handle general auth for those.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (pathname.startsWith('/dashboard/admin')) {

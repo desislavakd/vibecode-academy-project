@@ -57,9 +57,9 @@ mkdir -p "$FRONTEND/lib"
 cp "$PATCHES/lib/auth.ts"  "$FRONTEND/lib/auth.ts"
 cp "$PATCHES/lib/tools.ts" "$FRONTEND/lib/tools.ts"
 
-# Next.js config + middleware
-cp "$PATCHES/next.config.ts"  "$FRONTEND/next.config.ts"
-cp "$PATCHES/middleware.ts"   "$FRONTEND/middleware.ts"
+# Next.js config + proxy (route protection)
+cp "$PATCHES/next.config.ts" "$FRONTEND/next.config.ts"
+cp "$PATCHES/proxy.ts"       "$FRONTEND/proxy.ts"
 
 echo "Frontend files applied."
 

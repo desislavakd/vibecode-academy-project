@@ -40,7 +40,11 @@ class ToolResource extends JsonResource
                     'url'         => $e->url,
                 ])->values()
             ),
-            'created_at' => $this->created_at->toDateTimeString(),
+            'created_at'    => $this->created_at->toDateTimeString(),
+            'ratings_avg'   => $this->ratings_avg_rating !== null
+                ? round((float) $this->ratings_avg_rating, 1) : null,
+            'ratings_count' => $this->ratings_count ?? null,
+            'user_rating'   => $this->user_rating ?? null,
         ];
     }
 }

@@ -49,6 +49,11 @@ class Tool extends Model
         return $this->hasMany(ToolExample::class);
     }
 
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(ToolRating::class);
+    }
+
     public function syncRoles(array $roles): void
     {
         $this->toolRoles()->delete();

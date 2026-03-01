@@ -59,6 +59,8 @@ cp "$PATCHES/database/migrations/2024_01_06_000000_add_request_info_to_audit_log
    "$BACKEND/database/migrations/2024_01_06_000000_add_request_info_to_audit_logs_table.php"
 cp "$PATCHES/database/migrations/2024_01_07_000000_add_tool_url_to_audit_logs_table.php" \
    "$BACKEND/database/migrations/2024_01_07_000000_add_tool_url_to_audit_logs_table.php"
+cp "$PATCHES/database/migrations/2024_01_08_000001_create_tool_ratings_table.php" \
+   "$BACKEND/database/migrations/2024_01_08_000001_create_tool_ratings_table.php"
 
 # Seeders
 mkdir -p "$BACKEND/database/seeders"
@@ -76,15 +78,17 @@ cp "$PATCHES/app/Models/Tool.php"           "$BACKEND/app/Models/Tool.php"
 cp "$PATCHES/app/Models/ToolRole.php"       "$BACKEND/app/Models/ToolRole.php"
 cp "$PATCHES/app/Models/ToolScreenshot.php" "$BACKEND/app/Models/ToolScreenshot.php"
 cp "$PATCHES/app/Models/ToolExample.php"    "$BACKEND/app/Models/ToolExample.php"
+cp "$PATCHES/app/Models/ToolRating.php"     "$BACKEND/app/Models/ToolRating.php"
 cp "$PATCHES/app/Models/Category.php"       "$BACKEND/app/Models/Category.php"
 cp "$PATCHES/app/Models/Tag.php"            "$BACKEND/app/Models/Tag.php"
 
 # Controllers
 mkdir -p "$BACKEND/app/Http/Controllers"
-cp "$PATCHES/app/Http/Controllers/ToolController.php"     "$BACKEND/app/Http/Controllers/ToolController.php"
-cp "$PATCHES/app/Http/Controllers/AuditLogController.php" "$BACKEND/app/Http/Controllers/AuditLogController.php"
-cp "$PATCHES/app/Http/Controllers/CategoryController.php" "$BACKEND/app/Http/Controllers/CategoryController.php"
-cp "$PATCHES/app/Http/Controllers/TagController.php"      "$BACKEND/app/Http/Controllers/TagController.php"
+cp "$PATCHES/app/Http/Controllers/ToolController.php"       "$BACKEND/app/Http/Controllers/ToolController.php"
+cp "$PATCHES/app/Http/Controllers/ToolRatingController.php" "$BACKEND/app/Http/Controllers/ToolRatingController.php"
+cp "$PATCHES/app/Http/Controllers/AuditLogController.php"   "$BACKEND/app/Http/Controllers/AuditLogController.php"
+cp "$PATCHES/app/Http/Controllers/CategoryController.php"   "$BACKEND/app/Http/Controllers/CategoryController.php"
+cp "$PATCHES/app/Http/Controllers/TagController.php"        "$BACKEND/app/Http/Controllers/TagController.php"
 
 # Form Requests
 mkdir -p "$BACKEND/app/Http/Requests"

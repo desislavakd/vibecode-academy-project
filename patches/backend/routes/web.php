@@ -4,6 +4,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\ToolController;
+use App\Http\Controllers\ToolRatingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +43,9 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('api/tools', ToolController::class);
     Route::post('api/tools/{tool}/approve', [ToolController::class, 'approve'])->middleware('role:owner');
     Route::post('api/tools/{tool}/reject',  [ToolController::class, 'reject'])->middleware('role:owner');
+
+    // Ratings
+    Route::post('api/tools/{tool}/rate', [ToolRatingController::class, 'upsert']);
 
     // Categories
     Route::get('api/categories',  [CategoryController::class, 'index']);

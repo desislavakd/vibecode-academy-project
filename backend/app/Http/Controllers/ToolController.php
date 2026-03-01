@@ -20,7 +20,7 @@ class ToolController extends Controller
     public function index(Request $request): ResourceCollection
     {
         $isOwner    = $request->user()->isOwner();
-        $hasFilters = $request->hasAny(['search', 'role', 'category', 'tag', 'status']);
+        $hasFilters = $request->hasAny(['search', 'role', 'category', 'tag', 'status', 'min_rating']);
         $page       = (int) $request->input('page', 1);
 
         // Cache the default approved-tools view (no filters, page 1) for all roles.
@@ -28,6 +28,8 @@ class ToolController extends Controller
         if (!$hasFilters && $page === 1) {
             $paginator = Cache::remember('tools:approved:page1', 300, function () {
                 return Tool::with(['author', 'categories', 'toolRoles', 'tags', 'screenshots', 'examples'])
+                    ->withAvg('ratings', 'rating')
+                    ->withCount('ratings')
                     ->where('status', 'approved')
                     ->latest()
                     ->paginate(15);
@@ -40,6 +42,8 @@ class ToolController extends Controller
         // Owner + ?status=pending|approved|rejected → filter by that status
         // Everyone else (or owner without ?status) → approved only
         $query = Tool::with(['author', 'categories', 'toolRoles', 'tags', 'screenshots', 'examples'])
+            ->withAvg('ratings', 'rating')
+            ->withCount('ratings')
             ->when(
                 !($isOwner && $request->filled('status')),
                 fn ($q) => $q->where('status', 'approved')
@@ -52,6 +56,7 @@ class ToolController extends Controller
             ->when($request->role,     fn ($q, $r) => $q->whereHas('toolRoles', fn ($q) => $q->where('role', $r)))
             ->when($request->category, fn ($q, $c) => $q->whereHas('categories', fn ($q) => $q->where('slug', $c)))
             ->when($request->tag,      fn ($q, $t) => $q->whereHas('tags', fn ($q) => $q->where('slug', $t)))
+            ->when($request->min_rating, fn ($q, $r) => $q->having('ratings_avg_rating', '>=', (float) $r))
             ->latest();
 
         return ToolResource::collection($query->paginate(15));
@@ -106,8 +111,13 @@ class ToolController extends Controller
         );
     }
 
-    public function show(Tool $tool): ToolResource
+    public function show(Request $request, Tool $tool): ToolResource
     {
+        $tool->loadAvg('ratings', 'rating')->loadCount('ratings');
+        $tool->user_rating = $tool->ratings()
+            ->where('user_id', $request->user()->id)
+            ->value('rating'); // null if the user has not rated yet
+
         return new ToolResource(
             $tool->load(['author', 'categories', 'toolRoles', 'tags', 'screenshots', 'examples'])
         );

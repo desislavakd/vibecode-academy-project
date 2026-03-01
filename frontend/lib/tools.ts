@@ -46,6 +46,9 @@ export interface Tool {
   screenshots: Screenshot[]
   examples: Example[]
   created_at: string
+  ratings_avg: number | null
+  ratings_count: number | null
+  user_rating: number | null
 }
 
 export interface PaginatedTools {
@@ -64,6 +67,7 @@ export interface ToolFilters {
   category?: string
   tag?: string
   status?: string
+  min_rating?: number
   page?: number
 }
 
@@ -86,8 +90,9 @@ export async function getTools(filters: ToolFilters = {}): Promise<PaginatedTool
   if (filters.role)     params.set('role', filters.role)
   if (filters.category) params.set('category', filters.category)
   if (filters.tag)      params.set('tag', filters.tag)
-  if (filters.status)   params.set('status', filters.status)
-  if (filters.page)     params.set('page', String(filters.page))
+  if (filters.status)     params.set('status', filters.status)
+  if (filters.min_rating) params.set('min_rating', String(filters.min_rating))
+  if (filters.page)       params.set('page', String(filters.page))
 
   const res = await fetch(`/api/tools?${params}`, { credentials: 'include' })
   if (!res.ok) throw new Error('Failed to fetch tools')
@@ -167,6 +172,23 @@ export async function getTags(): Promise<Tag[]> {
   if (!res.ok) throw new Error('Failed to fetch tags')
   const json = await res.json()
   return json.data
+}
+
+export interface RatingResult {
+  average: number
+  count: number
+  user_rating: number
+}
+
+export async function rateTool(id: number, rating: number): Promise<RatingResult> {
+  const res = await fetch(`/api/tools/${id}/rate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
+    credentials: 'include',
+    body: JSON.stringify({ rating }),
+  })
+  if (!res.ok) throw new Error('Failed to submit rating')
+  return res.json()
 }
 
 export async function approveTool(id: number): Promise<Tool> {

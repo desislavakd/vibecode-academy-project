@@ -43,9 +43,10 @@ export default function ToolsPage() {
   const [lastPage, setLastPage]     = useState(1)
   const [loading, setLoading]       = useState(true)
 
-  const [search, setSearch]     = useState('')
-  const [roleFilter, setRole]   = useState('')
-  const [catFilter, setCat]     = useState('')
+  const [search, setSearch]         = useState('')
+  const [roleFilter, setRole]       = useState('')
+  const [catFilter, setCat]         = useState('')
+  const [ratingFilter, setRating]   = useState('')
 
   useEffect(() => {
     getUser().catch(() => router.replace('/login'))
@@ -53,9 +54,10 @@ export default function ToolsPage() {
 
   useEffect(() => {
     const filters: ToolFilters = { page }
-    if (search)     filters.search   = search
-    if (roleFilter) filters.role     = roleFilter
-    if (catFilter)  filters.category = catFilter
+    if (search)       filters.search     = search
+    if (roleFilter)   filters.role       = roleFilter
+    if (catFilter)    filters.category   = catFilter
+    if (ratingFilter) filters.min_rating = Number(ratingFilter)
 
     setLoading(true)
     getTools(filters)
@@ -66,14 +68,14 @@ export default function ToolsPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [search, roleFilter, catFilter, page])
+  }, [search, roleFilter, catFilter, ratingFilter, page])
 
   useEffect(() => {
     getCategories().then(setCategories).catch(console.error)
   }, [])
 
   // reset page when filters change
-  useEffect(() => { setPage(1) }, [search, roleFilter, catFilter])
+  useEffect(() => { setPage(1) }, [search, roleFilter, catFilter, ratingFilter])
 
   function handleTilt(e: React.MouseEvent<HTMLDivElement>) {
     const card = e.currentTarget
@@ -133,10 +135,23 @@ export default function ToolsPage() {
           ))}
         </select>
 
-        {(search || roleFilter || catFilter) && (
+        <select
+          className="filter-select"
+          value={ratingFilter}
+          onChange={e => setRating(e.target.value)}
+        >
+          <option value="">Всички оценки</option>
+          <option value="5">★★★★★ 5</option>
+          <option value="4">★★★★☆ 4+</option>
+          <option value="3">★★★☆☆ 3+</option>
+          <option value="2">★★☆☆☆ 2+</option>
+          <option value="1">★☆☆☆☆ 1+</option>
+        </select>
+
+        {(search || roleFilter || catFilter || ratingFilter) && (
           <button
             className="btn btn-outline"
-            onClick={() => { setSearch(''); setRole(''); setCat('') }}
+            onClick={() => { setSearch(''); setRole(''); setCat(''); setRating('') }}
           >
             Изчисти
           </button>
@@ -197,6 +212,16 @@ export default function ToolsPage() {
                   <p className="tool-card-desc">{tool.description}</p>
 
                   <div className="tool-card-footer">
+                    <div className="card-rating">
+                      <span className="card-rating-stars">
+                        {tool.ratings_avg !== null
+                          ? '★'.repeat(Math.round(tool.ratings_avg)) + '☆'.repeat(5 - Math.round(tool.ratings_avg))
+                          : '☆☆☆☆☆'}
+                      </span>
+                      {tool.ratings_avg !== null && (
+                        <span className="card-rating-avg">{tool.ratings_avg.toFixed(1)}</span>
+                      )}
+                    </div>
                     <div className="tool-card-roles">
                       {tool.roles.slice(0, 3).map(role => (
                         <span

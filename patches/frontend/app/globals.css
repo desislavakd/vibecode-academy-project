@@ -1532,6 +1532,39 @@ select option {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ─── Star Rating Widget ──────────────────────────────────────────── */
+.rating-widget { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.rating-stars  { display: flex; gap: 0.15rem; }
+
+.rating-star {
+  background: none;
+  border: none;
+  padding: 0.1rem;
+  cursor: pointer;
+  color: var(--color-border);
+  transition: color 0.12s ease, transform 0.12s ease;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+.rating-star:hover,
+.rating-star--active { color: #f97316; }
+.rating-star:hover   { transform: scale(1.2); }
+.rating-star:disabled { cursor: not-allowed; opacity: 0.6; }
+
+.rating-meta { font-size: 0.9rem; color: var(--color-muted); }
+.rating-meta strong { color: var(--color-text); font-size: 1rem; }
+
+/* ─── Card Rating Badge (listing + carousel) ──────────────────────── */
+.card-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+.card-rating-stars { color: #f97316; font-size: 0.85rem; letter-spacing: 0.06em; }
+.card-rating-avg   { font-size: 0.8rem; color: var(--color-muted); }
+
 /* ─── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 768px) {
 

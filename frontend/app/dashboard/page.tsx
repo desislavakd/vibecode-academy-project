@@ -176,6 +176,16 @@ export default function DashboardPage() {
                           </div>
                           <p className="tool-card-desc tool-card-desc--compact">{tool.description}</p>
                           <div className="tool-card-footer">
+                            <div className="card-rating">
+                              <span className="card-rating-stars">
+                                {tool.ratings_avg !== null
+                                  ? '★'.repeat(Math.round(tool.ratings_avg)) + '☆'.repeat(5 - Math.round(tool.ratings_avg))
+                                  : '☆☆☆☆☆'}
+                              </span>
+                              {tool.ratings_avg !== null && (
+                                <span className="card-rating-avg">{tool.ratings_avg.toFixed(1)}</span>
+                              )}
+                            </div>
                             <div className="tool-card-roles">
                               {tool.roles.slice(0, 2).map(role => (
                                 <span

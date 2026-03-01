@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { getUser, User } from '@/lib/auth'
-import { getTool, deleteTool, Tool } from '@/lib/tools'
+import { getTool, deleteTool, rateTool, Tool } from '@/lib/tools'
 
 const roleColors: Record<string, string> = {
   owner:    '#f97316',
@@ -93,6 +93,14 @@ function IconStar() {
   )
 }
 
+function IconStarFilled({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  )
+}
+
 function IconPencil() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -123,6 +131,12 @@ export default function ToolDetailPage() {
   const [deleting, setDeleting] = useState(false)
   const [iconError, setIconError] = useState(false)
 
+  const [ratingAvg,   setRatingAvg]   = useState<number | null>(null)
+  const [ratingCount, setRatingCount] = useState<number | null>(null)
+  const [userRating,  setUserRating]  = useState<number | null>(null)
+  const [hoverStar,   setHoverStar]   = useState<number | null>(null)
+  const [ratingBusy,  setRatingBusy]  = useState(false)
+
   useEffect(() => {
     getUser()
       .then(u => setUser(u))
@@ -132,12 +146,32 @@ export default function ToolDetailPage() {
   useEffect(() => {
     if (!id) return
     getTool(Number(id))
-      .then(setTool)
+      .then(t => {
+        setTool(t)
+        setRatingAvg(t.ratings_avg)
+        setRatingCount(t.ratings_count)
+        setUserRating(t.user_rating)
+      })
       .catch(() => router.replace('/dashboard/tools'))
       .finally(() => setLoading(false))
   }, [id, router])
 
   const canEdit = !!user && !!tool
+
+  async function handleRate(star: number) {
+    if (ratingBusy) return
+    setRatingBusy(true)
+    try {
+      const result = await rateTool(Number(id), star)
+      setRatingAvg(result.average)
+      setRatingCount(result.count)
+      setUserRating(result.user_rating)
+    } catch {
+      // silent — existing rating remains
+    } finally {
+      setRatingBusy(false)
+    }
+  }
 
   async function handleDelete() {
     if (!confirm('Сигурен ли си, че искаш да изтриеш този инструмент?')) return
@@ -223,6 +257,39 @@ export default function ToolDetailPage() {
         </div>
 
         <div className="tool-hero-divider" />
+
+        {/* Rating */}
+        <div className="tool-section">
+          <div className="tool-section-header">
+            <span className="tool-section-icon"><IconStarFilled size={15} /></span>
+            <span className="tool-section-label">Оценка</span>
+          </div>
+          <div className="rating-widget">
+            <div className="rating-stars">
+              {[1, 2, 3, 4, 5].map(star => {
+                const active = hoverStar !== null ? star <= hoverStar : star <= (userRating ?? 0)
+                return (
+                  <button
+                    key={star}
+                    className={`rating-star${active ? ' rating-star--active' : ''}`}
+                    onClick={() => handleRate(star)}
+                    onMouseEnter={() => setHoverStar(star)}
+                    onMouseLeave={() => setHoverStar(null)}
+                    disabled={ratingBusy}
+                    aria-label={`${star} звезди`}
+                  >
+                    <IconStarFilled size={24} />
+                  </button>
+                )
+              })}
+            </div>
+            <span className="rating-meta">
+              {ratingAvg !== null
+                ? <><strong>{ratingAvg.toFixed(1)}</strong> / 5 · {ratingCount} {ratingCount === 1 ? 'оценка' : 'оценки'}</>
+                : 'Все още без оценки — бъди първият!'}
+            </span>
+          </div>
+        </div>
 
         {/* Roles */}
         {tool.roles.length > 0 && (

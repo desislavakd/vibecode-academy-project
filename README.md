@@ -15,6 +15,8 @@ ToolHive gives every team member a single place to add the AI tools they rely on
 - **Audit log** — Every create, update, approve, reject, and delete is recorded with actor, diff, IP, and browser info.
 - **Two-factor authentication** — TOTP-based 2FA that each user controls from their Settings page.
 - **Redis caching** — Tools, categories, and tags are cached for fast page loads; cache is invalidated automatically on writes.
+- **Star ratings** — Any team member can rate each tool 1–5 stars (one vote per user); average rating and vote count appear on every tool card and the detail page.
+- **Rating filter** — The tool catalogue can be filtered by minimum star rating (1★ → 5★) alongside role and category filters.
 - **Dark design system** — Consistent dark UI with Space Grotesk headings and DM Sans body text.
 - **Personalized dashboard** — each user's home page shows role-tailored tool recommendations in a scrollable carousel alongside quick navigation and recent activity.
 
@@ -169,6 +171,7 @@ There are six roles in ToolHive. The `owner` role has full administrative access
 | Browse approved tools         | ✅    | ✅      | ✅       | ✅ | ✅       | ✅ |
 | Submit a new tool             | ✅    | ✅      | ✅       | ✅ | ✅       | ✅ |
 | Edit any tool                 | ✅    | ✅      | ✅       | ✅ | ✅       | ✅ |
+| Rate any approved tool        | ✅    | ✅      | ✅       | ✅ | ✅       | ✅ |
 | Delete own tool               | ✅    | ✅      | ✅       | ✅ | ✅       | ✅ |
 | Delete any tool               | ✅    | ❌      | ❌       | ❌ | ❌       | ❌ |
 | Approve / reject tools        | ✅    | ❌      | ❌       | ❌ | ❌       | ❌ |
@@ -204,16 +207,16 @@ vibecode-academy-project/
 │   │   ├── app/
 │   │   │   ├── Enums/UserRole.php
 │   │   │   ├── Http/
-│   │   │   │   ├── Controllers/       ← ToolController, AuditLogController, CategoryController, TagController
+│   │   │   │   ├── Controllers/       ← ToolController, ToolRatingController, AuditLogController, CategoryController, TagController
 │   │   │   │   ├── Middleware/EnsureRole.php
 │   │   │   │   ├── Requests/          ← StoreToolRequest, UpdateToolRequest, StoreCategoryRequest
 │   │   │   │   └── Resources/         ← ToolResource, CategoryResource, TagResource
-│   │   │   ├── Models/                ← User, Tool, AuditLog, Category, Tag, ToolRole, Screenshot, Example
+│   │   │   ├── Models/                ← User, Tool, AuditLog, Category, Tag, ToolRole, ToolRating, Screenshot, Example
 │   │   │   ├── Policies/ToolPolicy.php
 │   │   │   └── Providers/FortifyServiceProvider.php
 │   │   ├── config/cors.php, fortify.php
 │   │   ├── database/
-│   │   │   ├── migrations/            ← 14 migrations (roles, tools, categories, tags, 2FA, audit log)
+│   │   │   ├── migrations/            ← 15 migrations (roles, tools, categories, tags, 2FA, audit log, ratings)
 │   │   │   └── seeders/               ← User, Category, Tag, Tool seeders
 │   │   └── routes/web.php
 │   └── frontend/
@@ -226,9 +229,9 @@ vibecode-academy-project/
 │       │   └── dashboard/
 │       │       ├── page.tsx           ← dashboard home — profile card, quick actions, recommended tools
 │       │       └── tools/
-│       │           ├── page.tsx       ← tool catalogue (approved, filterable by role / category / tag)
+│       │           ├── page.tsx       ← tool catalogue (approved, filterable by role / category / tag / rating)
 │       │           ├── new/page.tsx
-│       │           ├── [id]/page.tsx
+│       │           ├── [id]/page.tsx  ← tool detail — interactive star rating widget
 │       │           └── edit/[id]/page.tsx
 │       │       ├── admin/page.tsx     ← Admin Panel (approve / reject)
 │       │       ├── admin/audit/page.tsx  ← Audit Log feed

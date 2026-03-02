@@ -1,0 +1,85 @@
+/* === BUTTONS === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  border: none;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-danger), var(--color-pink));
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--color-primary-hover), var(--color-danger-dark), var(--color-pink-dark));
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn-outline:hover {
+  background: var(--color-border);
+}
+
+.btn-sm {
+  padding: 0.35rem 0.85rem;
+  font-size: 0.9rem;
+}
+
+.btn-lg {
+  padding: 0.75rem 1.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-error-light);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 0.55rem 1.2rem;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-danger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+/* Muted link button (e.g. "use recovery code" toggle) */
+.btn-link-muted {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.btn-link-muted:hover {
+  color: var(--color-text);
+}

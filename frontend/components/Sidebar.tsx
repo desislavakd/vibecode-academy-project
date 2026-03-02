@@ -31,7 +31,7 @@ const ClockIcon = () => (
 )
 
 const baseNavItems = [
-  { href: '/dashboard',          label: 'Dashboard',       icon: <HouseIcon /> },
+  { href: '/dashboard',          label: 'Профил',          icon: <HouseIcon /> },
   { href: '/dashboard/tools',    label: 'AI Инструменти', icon: '🔧' },
 ]
 

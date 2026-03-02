@@ -6,29 +6,8 @@ import Link from 'next/link'
 import { getUser, type User } from '@/lib/auth'
 import { getTools, type Tool } from '@/lib/tools'
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getFaviconUrl(url: string): string {
-  try { return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=32` }
-  catch { return '' }
-}
-
-const roleColors: Record<string, string> = {
-  owner:    '#6366f1',
-  backend:  '#22c55e',
-  frontend: '#3b82f6',
-  qa:       '#f97316',
-  designer: '#ec4899',
-  pm:       '#eab308',
-}
-
-const catPalette = [
-  { bg: 'rgba(99,102,241,0.12)',  border: 'rgba(99,102,241,0.3)',  text: '#818cf8' },
-  { bg: 'rgba(34,197,94,0.12)',   border: 'rgba(34,197,94,0.3)',   text: '#4ade80' },
-  { bg: 'rgba(249,115,22,0.12)',  border: 'rgba(249,115,22,0.3)',  text: '#fb923c' },
-  { bg: 'rgba(236,72,153,0.12)',  border: 'rgba(236,72,153,0.3)',  text: '#f472b6' },
-  { bg: 'rgba(234,179,8,0.12)',   border: 'rgba(234,179,8,0.3)',   text: '#facc15' },
-]
+import { roleColors, catPalette } from '@/lib/constants'
+import { getFaviconUrl } from '@/lib/utils'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 

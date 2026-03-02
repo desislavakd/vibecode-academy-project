@@ -5,34 +5,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getUser } from '@/lib/auth'
 import { getTools, getCategories, Tool, Category, ToolFilters } from '@/lib/tools'
-
-const ALL_ROLES = ['owner', 'backend', 'frontend', 'qa', 'designer', 'pm']
-
-const roleColors: Record<string, string> = {
-  owner:    '#6366f1',
-  backend:  '#22c55e',
-  frontend: '#3b82f6',
-  qa:       '#f97316',
-  designer: '#ec4899',
-  pm:       '#eab308',
-}
-
-const catPalette = [
-  { bg: 'rgba(99,102,241,0.15)',  border: '#6366f1', text: '#818cf8' },
-  { bg: 'rgba(20,184,166,0.15)', border: '#14b8a6', text: '#2dd4bf' },
-  { bg: 'rgba(249,115,22,0.15)', border: '#f97316', text: '#fb923c' },
-  { bg: 'rgba(236,72,153,0.15)', border: '#ec4899', text: '#f472b6' },
-  { bg: 'rgba(234,179,8,0.15)',  border: '#eab308', text: '#fbbf24' },
-]
-
-function getFaviconUrl(url: string): string {
-  try {
-    const domain = new URL(url).hostname
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
-  } catch {
-    return ''
-  }
-}
+import { ALL_ROLES, roleColors, catPalette } from '@/lib/constants'
+import { getFaviconUrl, handleTilt, handleTiltReset } from '@/lib/utils'
+import Pagination from '@/components/Pagination'
 
 export default function ToolsPage() {
   const router = useRouter()
@@ -253,26 +228,7 @@ export default function ToolsPage() {
         </div>
       )}
 
-      {/* Pagination */}
-      {lastPage > 1 && (
-        <div className="pagination">
-          <button
-            className="btn btn-outline"
-            disabled={page === 1}
-            onClick={() => setPage(p => p - 1)}
-          >
-            ← Предишна
-          </button>
-          <span className="pagination-info">{page} / {lastPage}</span>
-          <button
-            className="btn btn-outline"
-            disabled={page === lastPage}
-            onClick={() => setPage(p => p + 1)}
-          >
-            Следваща →
-          </button>
-        </div>
-      )}
+      <Pagination page={page} lastPage={lastPage} onPageChange={setPage} />
     </div>
   )
 }

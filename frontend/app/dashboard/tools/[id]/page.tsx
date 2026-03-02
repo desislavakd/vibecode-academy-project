@@ -5,15 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { getUser, User } from '@/lib/auth'
 import { getTool, deleteTool, rateTool, Tool } from '@/lib/tools'
-
-const roleColors: Record<string, string> = {
-  owner:    '#f97316',
-  backend:  '#22c55e',
-  frontend: '#3b82f6',
-  qa:       '#f97316',
-  designer: '#ec4899',
-  pm:       '#eab308',
-}
+import { roleColors } from '@/lib/constants'
 
 function IconUsers() {
   return (

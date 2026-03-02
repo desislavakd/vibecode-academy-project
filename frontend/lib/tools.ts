@@ -1,4 +1,7 @@
 import { csrfHeaders } from './auth'
+import { buildQueryString } from './utils'
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface Category {
   id: number
@@ -84,132 +87,105 @@ export interface ToolFormData {
   examples?: { title: string; description?: string; url?: string }[]
 }
 
-export async function getTools(filters: ToolFilters = {}): Promise<PaginatedTools> {
-  const params = new URLSearchParams()
-  if (filters.search)   params.set('search', filters.search)
-  if (filters.role)     params.set('role', filters.role)
-  if (filters.category) params.set('category', filters.category)
-  if (filters.tag)      params.set('tag', filters.tag)
-  if (filters.status)     params.set('status', filters.status)
-  if (filters.min_rating) params.set('min_rating', String(filters.min_rating))
-  if (filters.page)       params.set('page', String(filters.page))
-
-  const res = await fetch(`/api/tools?${params}`, { credentials: 'include' })
-  if (!res.ok) throw new Error('Failed to fetch tools')
-  return res.json()
-}
-
-export async function getTool(id: number): Promise<Tool> {
-  const res = await fetch(`/api/tools/${id}`, { credentials: 'include' })
-  if (!res.ok) throw new Error('Tool not found')
-  const json = await res.json()
-  return json.data
-}
-
-export async function createTool(data: ToolFormData): Promise<Tool> {
-  const res = await fetch('/api/tools', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
-    credentials: 'include',
-    body: JSON.stringify(data),
-  })
-  if (!res.ok) {
-    const err = await res.json()
-    throw err
-  }
-  const json = await res.json()
-  return json.data
-}
-
-export async function updateTool(id: number, data: Partial<ToolFormData>): Promise<Tool> {
-  const res = await fetch(`/api/tools/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
-    credentials: 'include',
-    body: JSON.stringify(data),
-  })
-  if (!res.ok) {
-    const err = await res.json()
-    throw err
-  }
-  const json = await res.json()
-  return json.data
-}
-
-export async function deleteTool(id: number): Promise<void> {
-  const res = await fetch(`/api/tools/${id}`, {
-    method: 'DELETE',
-    headers: csrfHeaders(),
-    credentials: 'include',
-  })
-  if (!res.ok) throw new Error('Failed to delete tool')
-}
-
-export async function getCategories(): Promise<Category[]> {
-  const res = await fetch('/api/categories', { credentials: 'include' })
-  if (!res.ok) throw new Error('Failed to fetch categories')
-  const json = await res.json()
-  return json.data
-}
-
-export async function createCategory(name: string, description?: string): Promise<Category> {
-  const res = await fetch('/api/categories', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
-    credentials: 'include',
-    body: JSON.stringify({ name, description }),
-  })
-  if (!res.ok) {
-    const err = await res.json()
-    throw err
-  }
-  const json = await res.json()
-  return json.data
-}
-
-export async function getTags(): Promise<Tag[]> {
-  const res = await fetch('/api/tags', { credentials: 'include' })
-  if (!res.ok) throw new Error('Failed to fetch tags')
-  const json = await res.json()
-  return json.data
-}
-
 export interface RatingResult {
   average: number
   count: number
   user_rating: number
 }
 
-export async function rateTool(id: number, rating: number): Promise<RatingResult> {
-  const res = await fetch(`/api/tools/${id}/rate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
+/** Unified error shape thrown by all API functions. */
+export interface ApiError {
+  message: string
+  errors?: Record<string, string[]>
+}
+
+// ─── Internal fetch helper ───────────────────────────────────────────────────
+
+/**
+ * Wraps fetch with shared concerns: credentials, CSRF headers, JSON body,
+ * and a unified error model. All API functions delegate to this helper.
+ */
+async function apiFetch<T = void>(method: string, url: string, body?: unknown): Promise<T> {
+  const res = await fetch(url, {
+    method,
     credentials: 'include',
-    body: JSON.stringify({ rating }),
+    headers: {
+      ...(method !== 'GET' ? csrfHeaders() : {}),
+      ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+    },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   })
-  if (!res.ok) throw new Error('Failed to submit rating')
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw { message: data.message ?? 'Request failed', errors: data.errors } as ApiError
+  }
+
+  // 204 No Content (e.g. DELETE responses)
+  if (res.status === 204) return undefined as T
   return res.json()
 }
 
+// ─── Tools ───────────────────────────────────────────────────────────────────
+
+export async function getTools(filters: ToolFilters = {}): Promise<PaginatedTools> {
+  const qs = buildQueryString(filters)
+  return apiFetch<PaginatedTools>('GET', `/api/tools?${qs}`)
+}
+
+export async function getTool(id: number): Promise<Tool> {
+  const json = await apiFetch<{ data: Tool }>('GET', `/api/tools/${id}`)
+  return json.data
+}
+
+export async function createTool(data: ToolFormData): Promise<Tool> {
+  const json = await apiFetch<{ data: Tool }>('POST', '/api/tools', data)
+  return json.data
+}
+
+export async function updateTool(id: number, data: Partial<ToolFormData>): Promise<Tool> {
+  const json = await apiFetch<{ data: Tool }>('PUT', `/api/tools/${id}`, data)
+  return json.data
+}
+
+export async function deleteTool(id: number): Promise<void> {
+  await apiFetch('DELETE', `/api/tools/${id}`)
+}
+
+// ─── Categories ──────────────────────────────────────────────────────────────
+
+export async function getCategories(): Promise<Category[]> {
+  const json = await apiFetch<{ data: Category[] }>('GET', '/api/categories')
+  return json.data
+}
+
+export async function createCategory(name: string, description?: string): Promise<Category> {
+  const json = await apiFetch<{ data: Category }>('POST', '/api/categories', { name, description })
+  return json.data
+}
+
+// ─── Tags ────────────────────────────────────────────────────────────────────
+
+export async function getTags(): Promise<Tag[]> {
+  const json = await apiFetch<{ data: Tag[] }>('GET', '/api/tags')
+  return json.data
+}
+
+// ─── Ratings ─────────────────────────────────────────────────────────────────
+
+export async function rateTool(id: number, rating: number): Promise<RatingResult> {
+  return apiFetch<RatingResult>('POST', `/api/tools/${id}/rate`, { rating })
+}
+
+// ─── Approve / Reject ────────────────────────────────────────────────────────
+
 export async function approveTool(id: number): Promise<Tool> {
-  const res = await fetch(`/api/tools/${id}/approve`, {
-    method: 'POST',
-    headers: csrfHeaders(),
-    credentials: 'include',
-  })
-  if (!res.ok) throw new Error('Failed to approve tool')
-  const json = await res.json()
+  const json = await apiFetch<{ data: Tool }>('POST', `/api/tools/${id}/approve`)
   return json.data
 }
 
 export async function rejectTool(id: number): Promise<Tool> {
-  const res = await fetch(`/api/tools/${id}/reject`, {
-    method: 'POST',
-    headers: csrfHeaders(),
-    credentials: 'include',
-  })
-  if (!res.ok) throw new Error('Failed to reject tool')
-  const json = await res.json()
+  const json = await apiFetch<{ data: Tool }>('POST', `/api/tools/${id}/reject`)
   return json.data
 }
 
@@ -246,24 +222,10 @@ export interface PaginatedAuditLog {
 }
 
 export async function getAuditLogs(filters: AuditLogFilters = {}): Promise<PaginatedAuditLog> {
-  const params = new URLSearchParams()
-  if (filters.action)  params.set('action',  filters.action)
-  if (filters.search)  params.set('search',  filters.search)
-  if (filters.from)    params.set('from',    filters.from)
-  if (filters.to)      params.set('to',      filters.to)
-  if (filters.user_id) params.set('user_id', String(filters.user_id))
-  if (filters.page)    params.set('page',    String(filters.page))
-
-  const res = await fetch(`/api/audit-logs?${params}`, { credentials: 'include' })
-  if (!res.ok) throw new Error('Failed to fetch audit logs')
-  return res.json()
+  const qs = buildQueryString(filters)
+  return apiFetch<PaginatedAuditLog>('GET', `/api/audit-logs?${qs}`)
 }
 
 export async function deleteAuditLog(id: number): Promise<void> {
-  const res = await fetch(`/api/audit-logs/${id}`, {
-    method: 'DELETE',
-    headers: csrfHeaders(),
-    credentials: 'include',
-  })
-  if (!res.ok) throw new Error('Failed to delete audit log entry')
+  await apiFetch('DELETE', `/api/audit-logs/${id}`)
 }

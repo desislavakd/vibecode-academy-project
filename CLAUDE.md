@@ -92,7 +92,7 @@ Before applying a non-trivial change, state in one or two sentences *why* this a
 - Never expose secrets in code, logs, or responses.
 - Validate at system boundaries (user input, external APIs). Trust internal framework guarantees.
 - All owner-only routes must carry `->middleware('role:owner')`.
-- Frontend admin routes must be protected by `middleware.ts`.
+- Frontend admin routes must be protected by `proxy.ts`.
 
 ### 5. No Over-Engineering
 Build exactly what is needed. Three similar lines are better than a premature abstraction. No helpers for one-time operations. No feature flags for hypothetical future requirements.

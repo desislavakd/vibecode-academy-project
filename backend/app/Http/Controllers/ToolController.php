@@ -6,14 +6,12 @@ use App\Http\Requests\StoreToolRequest;
 use App\Http\Requests\UpdateToolRequest;
 use App\Http\Resources\ToolResource;
 use App\Models\AuditLog;
-use App\Models\Tag;
 use App\Models\Tool;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Str;
 
 class ToolController extends Controller
 {
@@ -27,7 +25,7 @@ class ToolController extends Controller
         // This covers the "N инструмента в платформата" count and the initial listing.
         if (!$hasFilters && $page === 1) {
             $paginator = Cache::remember('tools:approved:page1', 300, function () {
-                return Tool::with(['author', 'categories', 'toolRoles', 'tags', 'screenshots', 'examples'])
+                return Tool::with($this->toolRelations())
                     ->withAvg('ratings', 'rating')
                     ->withCount('ratings')
                     ->where('status', 'approved')
@@ -41,7 +39,7 @@ class ToolController extends Controller
         // Owner + ?status=all → no filter (show every status, admin panel use case)
         // Owner + ?status=pending|approved|rejected → filter by that status
         // Everyone else (or owner without ?status) → approved only
-        $query = Tool::with(['author', 'categories', 'toolRoles', 'tags', 'screenshots', 'examples'])
+        $query = Tool::with($this->toolRelations())
             ->withAvg('ratings', 'rating')
             ->withCount('ratings')
             ->when(
@@ -79,36 +77,15 @@ class ToolController extends Controller
         }
 
         $tool->syncRoles($request->input('roles', []));
-
-        $tagIds = collect($request->input('tags', []))->map(function (string $name) {
-            $slug = Str::slug($name);
-            return Tag::firstOrCreate(['slug' => $slug], ['name' => $name])->id;
-        });
-        $tool->tags()->sync($tagIds);
-
-        foreach ($request->input('screenshots', []) as $data) {
-            if (!empty($data['url'])) {
-                $tool->screenshots()->create([
-                    'url'     => $data['url'],
-                    'caption' => $data['caption'] ?? null,
-                ]);
-            }
-        }
-
-        foreach ($request->input('examples', []) as $data) {
-            if (!empty($data['title'])) {
-                $tool->examples()->create($data);
-            }
-        }
+        $tool->syncTagsFromNames($request->input('tags', []));
+        $tool->syncScreenshots($request->input('screenshots', []));
+        $tool->syncExamples($request->input('examples', []));
 
         $this->clearToolCache();
-        Cache::forget('tags:all');
 
         AuditLog::record($request->user(), 'created', $tool);
 
-        return new ToolResource(
-            $tool->load(['author', 'categories', 'toolRoles', 'tags', 'screenshots', 'examples'])
-        );
+        return new ToolResource($tool->load($this->toolRelations()));
     }
 
     public function show(Request $request, Tool $tool): ToolResource
@@ -118,9 +95,7 @@ class ToolController extends Controller
             ->where('user_id', $request->user()->id)
             ->value('rating'); // null if the user has not rated yet
 
-        return new ToolResource(
-            $tool->load(['author', 'categories', 'toolRoles', 'tags', 'screenshots', 'examples'])
-        );
+        return new ToolResource($tool->load($this->toolRelations()));
     }
 
     public function update(UpdateToolRequest $request, Tool $tool): ToolResource
@@ -136,7 +111,7 @@ class ToolController extends Controller
         $newValues = $tool->only($fields);
         $changes   = [];
         foreach ($fields as $field) {
-            if (array_key_exists($field, $request->only($fields)) && $oldValues[$field] !== $newValues[$field]) {
+            if ($oldValues[$field] !== $newValues[$field]) {
                 $changes[$field] = ['old' => $oldValues[$field], 'new' => $newValues[$field]];
             }
         }
@@ -150,42 +125,22 @@ class ToolController extends Controller
         }
 
         if ($request->has('tags')) {
-            $tagIds = collect($request->input('tags', []))->map(function (string $name) {
-                $slug = Str::slug($name);
-                return Tag::firstOrCreate(['slug' => $slug], ['name' => $name])->id;
-            });
-            $tool->tags()->sync($tagIds);
-            Cache::forget('tags:all');
+            $tool->syncTagsFromNames($request->input('tags', []));
         }
 
         if ($request->has('screenshots')) {
-            $tool->screenshots()->delete();
-            foreach ($request->input('screenshots', []) as $data) {
-                if (!empty($data['url'])) {
-                    $tool->screenshots()->create([
-                        'url'     => $data['url'],
-                        'caption' => $data['caption'] ?? null,
-                    ]);
-                }
-            }
+            $tool->syncScreenshots($request->input('screenshots', []));
         }
 
         if ($request->has('examples')) {
-            $tool->examples()->delete();
-            foreach ($request->input('examples', []) as $data) {
-                if (!empty($data['title'])) {
-                    $tool->examples()->create($data);
-                }
-            }
+            $tool->syncExamples($request->input('examples', []));
         }
 
         $this->clearToolCache();
 
         AuditLog::record($request->user(), 'updated', $tool, $changes);
 
-        return new ToolResource(
-            $tool->load(['author', 'categories', 'toolRoles', 'tags', 'screenshots', 'examples'])
-        );
+        return new ToolResource($tool->load($this->toolRelations()));
     }
 
     public function destroy(Tool $tool): Response
@@ -226,9 +181,7 @@ class ToolController extends Controller
 
         AuditLog::record(request()->user(), 'approved', $tool);
 
-        return new ToolResource(
-            $tool->load(['author', 'categories', 'toolRoles', 'tags', 'screenshots', 'examples'])
-        );
+        return new ToolResource($tool->load($this->toolRelations()));
     }
 
     public function reject(Tool $tool): ToolResource
@@ -241,13 +194,19 @@ class ToolController extends Controller
 
         AuditLog::record(request()->user(), 'rejected', $tool);
 
-        return new ToolResource(
-            $tool->load(['author', 'categories', 'toolRoles', 'tags', 'screenshots', 'examples'])
-        );
+        return new ToolResource($tool->load($this->toolRelations()));
     }
 
+    /** Relations eager-loaded on every tool response. */
+    private function toolRelations(): array
+    {
+        return ['author', 'categories', 'toolRoles', 'tags', 'screenshots', 'examples'];
+    }
+
+    /** Clears all cached tool listings and related lookup caches. */
     private function clearToolCache(): void
     {
         Cache::forget('tools:approved:page1');
+        Cache::forget('tags:all');
     }
 }

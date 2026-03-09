@@ -66,8 +66,54 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="page">
-        <p style={{ color: 'var(--color-muted)' }}>Loading…</p>
+      <div className="page dashboard-home-page">
+        <div className="skel-title skeleton-base" style={{ height: '34px', width: '50%', marginBottom: '1.5rem' }} />
+        <div className="card card--glass" style={{ padding: '1.5rem' }}>
+          <div className="profile-card">
+            <div className="skeleton-base" style={{ width: 56, height: 56, borderRadius: '50%', flexShrink: 0 }} />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div className="skel-title skeleton-base" style={{ width: '45%' }} />
+              <div className="skel-line skeleton-base" style={{ width: '60%' }} />
+              <div className="skel-line skeleton-base" style={{ width: '35%', height: '11px' }} />
+            </div>
+          </div>
+        </div>
+        <div className="dashboard-bottom-row" style={{ marginTop: '2rem' }}>
+          <div className="dashboard-bottom-left">
+            <div className="skel-title skeleton-base" style={{ width: '30%', marginBottom: '0.75rem' }} />
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <div className="skeleton-base" style={{ height: 48, width: 160, borderRadius: 'var(--radius)' }} />
+              <div className="skeleton-base" style={{ height: 48, width: 180, borderRadius: 'var(--radius)' }} />
+            </div>
+            <div style={{ marginTop: '1.5rem' }}>
+              <div className="skel-title skeleton-base" style={{ width: '40%', marginBottom: '0.75rem' }} />
+              <div style={{ display: 'flex', gap: '0.65rem', overflow: 'hidden' }}>
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="tool-card-skeleton" style={{ flex: '0 0 196px', minHeight: 140 }}>
+                    <div className="skel-header">
+                      <div className="skel-favicon skeleton-base" />
+                      <div className="skel-title skeleton-base" />
+                    </div>
+                    <div className="skel-line skeleton-base" />
+                    <div className="skel-line skel-line--short skeleton-base" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="card card--glass recent-activity-card" style={{ padding: '1.5rem' }}>
+            <div className="skel-title skeleton-base" style={{ width: '60%', marginBottom: '1.25rem' }} />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} style={{ display: 'flex', gap: '0.9rem', marginBottom: '1.1rem', alignItems: 'center' }}>
+                <div className="skeleton-base" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0 }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  <div className="skel-line skeleton-base" style={{ width: '80%' }} />
+                  <div className="skel-line skeleton-base" style={{ width: '40%', height: '11px' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )
   }

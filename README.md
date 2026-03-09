@@ -21,6 +21,7 @@ ToolHive gives every team member a single place to add the AI tools they rely on
 - **Personalized dashboard** — each user's home page shows role-tailored tool recommendations in a scrollable carousel alongside quick navigation and recent activity.
 - **Reliable writes** — Tool creation and updates are wrapped in database transactions; partial saves on relationship sync failures are impossible.
 - **Inline error feedback** — All API errors (validation, permissions, network) surface as inline banners; no silent failures or blocking alert() dialogs.
+- **Skeleton loading states** — Every page shows shimmer placeholder UI while data loads; no blank screens or plain "Loading…" text.
 
 ---
 

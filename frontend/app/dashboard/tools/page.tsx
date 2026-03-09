@@ -135,7 +135,25 @@ export default function ToolsPage() {
 
       {/* Tools grid */}
       {loading ? (
-        <p className="tools-loading">Зареждане...</p>
+        <div className="tools-grid">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="tool-card-wrapper">
+              <div className="tool-card-skeleton">
+                <div className="skel-header">
+                  <div className="skel-favicon skeleton-base" />
+                  <div className="skel-title skeleton-base" />
+                </div>
+                <div className="skel-line skeleton-base" />
+                <div className="skel-line skel-line--short skeleton-base" />
+                <div className="skel-line skel-line--short skeleton-base" style={{ width: '50%' }} />
+                <div className="skel-footer">
+                  <div className="skel-chip skeleton-base" />
+                  <div className="skel-chip skeleton-base" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : tools.length === 0 ? (
         <div className="tools-empty">
           <p>Няма намерени инструменти.</p>
@@ -144,7 +162,7 @@ export default function ToolsPage() {
           </Link>
         </div>
       ) : (
-        <div className="tools-grid">
+        <div className="tools-grid tools-grid--loaded">
           {tools.map(tool => {
             const cat     = tool.categories[0]
             const palette = cat ? catPalette[cat.id % catPalette.length] : null

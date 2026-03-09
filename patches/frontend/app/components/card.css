@@ -230,3 +230,27 @@
   -webkit-line-clamp: 2;
   font-size: 0.88rem;
 }
+
+/* === SKELETON CARD === */
+.tool-card-skeleton {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 200px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.skel-header { display: flex; align-items: center; gap: 0.6rem; }
+.skel-footer { display: flex; gap: 0.5rem; margin-top: auto; }
+.skel-favicon { width: 30px; height: 30px; border-radius: 6px; flex-shrink: 0; }
+.skel-title  { height: 18px; width: 60%; }
+.skel-line   { height: 13px; width: 100%; }
+.skel-line--short { width: 75%; }
+.skel-chip   { height: 22px; width: 56px; border-radius: 99px; }

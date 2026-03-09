@@ -186,7 +186,36 @@ export default function ToolDetailPage() {
     }
   }
 
-  if (loading) return <div className="page"><p>Зареждане...</p></div>
+  if (loading) return (
+    <div className="page">
+      <div className="tool-hero-skeleton">
+        <div className="skel-hero-top">
+          <div className="skel-hero-icon skeleton-base" />
+          <div className="skel-hero-body">
+            <div className="skel-hero-title skeleton-base" />
+            <div className="skel-hero-meta skeleton-base" />
+            <div className="skel-hero-actions">
+              <div className="skel-btn skeleton-base" />
+              <div className="skel-btn skeleton-base" style={{ width: '38px' }} />
+            </div>
+          </div>
+        </div>
+        <div className="skel-divider" />
+        <div className="skel-section">
+          <div className="skel-section-header skeleton-base" />
+          <div className="skel-line skeleton-base" />
+          <div className="skel-line skel-line--short skeleton-base" />
+        </div>
+        <div className="skel-section">
+          <div className="skel-section-header skeleton-base" />
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div className="skel-chip skeleton-base" />
+            <div className="skel-chip skeleton-base" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
   if (!tool) return (
     <div className="page">
       {loadError && <div className="alert-error">{loadError}</div>}

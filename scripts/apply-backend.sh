@@ -61,6 +61,8 @@ cp "$PATCHES/database/migrations/2024_01_07_000000_add_tool_url_to_audit_logs_ta
    "$BACKEND/database/migrations/2024_01_07_000000_add_tool_url_to_audit_logs_table.php"
 cp "$PATCHES/database/migrations/2024_01_08_000001_create_tool_ratings_table.php" \
    "$BACKEND/database/migrations/2024_01_08_000001_create_tool_ratings_table.php"
+cp "$PATCHES/database/migrations/2024_01_09_000000_add_status_index_to_tools_table.php" \
+   "$BACKEND/database/migrations/2024_01_09_000000_add_status_index_to_tools_table.php"
 
 # Seeders
 mkdir -p "$BACKEND/database/seeders"

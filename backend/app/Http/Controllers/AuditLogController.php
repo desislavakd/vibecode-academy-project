@@ -41,8 +41,8 @@ class AuditLogController extends Controller
                       ->orWhere('tool_name', 'like', "%{$s}%")
                 )
             )
-            ->when($request->from, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
-            ->when($request->to,   fn ($q, $d) => $q->whereDate('created_at', '<=', $d))
+            ->when($request->from, fn ($q, $d) => $q->where('created_at', '>=', $d . ' 00:00:00'))
+            ->when($request->to,   fn ($q, $d) => $q->where('created_at', '<=', $d . ' 23:59:59'))
             ->latest()
             ->paginate(30);
 

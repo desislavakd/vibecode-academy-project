@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use App\Models\ToolRole;
 
 class Tool extends Model
 {
@@ -58,16 +59,40 @@ class Tool extends Model
     public function syncRoles(array $roles): void
     {
         $this->toolRoles()->delete();
-        foreach (array_unique($roles) as $role) {
-            $this->toolRoles()->create(['role' => $role]);
+        $unique = array_unique($roles);
+        if (!empty($unique)) {
+            ToolRole::insert(
+                array_map(fn ($r) => ['tool_id' => $this->id, 'role' => $r], $unique)
+            );
         }
     }
 
     public function syncTagsFromNames(array $names): void
     {
-        $tagIds = collect($names)->map(fn (string $name) =>
-            Tag::firstOrCreate(['slug' => Str::slug($name)], ['name' => $name])->id
-        );
+        if (empty($names)) {
+            $this->tags()->sync([]);
+            return;
+        }
+
+        // Build slug→name map (deduplicated)
+        $slugMap = collect(array_unique($names))
+            ->mapWithKeys(fn ($name) => [Str::slug($name) => $name]);
+
+        // One SELECT for existing tags
+        $existing = Tag::whereIn('slug', $slugMap->keys()->all())->pluck('id', 'slug');
+
+        // One batch INSERT for new ones
+        $newSlugs = $slugMap->keys()->diff($existing->keys())->values();
+        if ($newSlugs->isNotEmpty()) {
+            Tag::upsert(
+                $newSlugs->map(fn ($slug) => ['name' => $slugMap[$slug], 'slug' => $slug])->all(),
+                ['slug'],
+                ['name']
+            );
+        }
+
+        // One SELECT to get final IDs (existing + newly created)
+        $tagIds = Tag::whereIn('slug', $slugMap->keys()->all())->pluck('id');
         $this->tags()->sync($tagIds);
     }
 

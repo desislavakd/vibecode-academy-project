@@ -19,6 +19,8 @@ ToolHive gives every team member a single place to add the AI tools they rely on
 - **Rating filter** — The tool catalogue can be filtered by minimum star rating (1★ → 5★) alongside role and category filters.
 - **Dark design system** — Consistent dark UI with Space Grotesk headings and DM Sans body text.
 - **Personalized dashboard** — each user's home page shows role-tailored tool recommendations in a scrollable carousel alongside quick navigation and recent activity.
+- **Reliable writes** — Tool creation and updates are wrapped in database transactions; partial saves on relationship sync failures are impossible.
+- **Inline error feedback** — All API errors (validation, permissions, network) surface as inline banners; no silent failures or blocking alert() dialogs.
 
 ---
 
@@ -216,7 +218,7 @@ vibecode-academy-project/
 │   │   │   └── Providers/FortifyServiceProvider.php
 │   │   ├── config/cors.php, fortify.php
 │   │   ├── database/
-│   │   │   ├── migrations/            ← 15 migrations (roles, tools, categories, tags, 2FA, audit log, ratings)
+│   │   │   ├── migrations/            ← 16 migrations (roles, tools, categories, tags, 2FA, audit log, ratings, indexes)
 │   │   │   └── seeders/               ← User, Category, Tag, Tool seeders
 │   │   └── routes/web.php
 │   └── frontend/

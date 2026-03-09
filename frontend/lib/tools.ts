@@ -106,18 +106,23 @@ export interface ApiError {
  * and a unified error model. All API functions delegate to this helper.
  */
 async function apiFetch<T = void>(method: string, url: string, body?: unknown): Promise<T> {
-  const res = await fetch(url, {
-    method,
-    credentials: 'include',
-    headers: {
-      ...(method !== 'GET' ? csrfHeaders() : {}),
-      ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-    },
-    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-  })
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method,
+      credentials: 'include',
+      headers: {
+        ...(method !== 'GET' ? csrfHeaders() : {}),
+        ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      },
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    })
+  } catch {
+    throw { message: 'Мрежова грешка. Проверете връзката си с интернет.' } as ApiError
+  }
 
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}))
+    const data = await res.json().catch(() => ({ message: 'Невалиден отговор от сървъра.' }))
     throw { message: data.message ?? 'Request failed', errors: data.errors } as ApiError
   }
 

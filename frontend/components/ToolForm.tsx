@@ -53,8 +53,12 @@ export default function ToolForm({ mode, toolId }: ToolFormProps) {
 
   useEffect(() => {
     getUser().catch(() => router.replace('/login'))
-    getCategories().then(setCategories).catch(console.error)
-    getTags().then(setTags).catch(console.error)
+    getCategories().then(setCategories).catch(() =>
+      setError('Неуспешно зареждане на категориите. Презаредете страницата.')
+    )
+    getTags().then(setTags).catch(() =>
+      setError('Неуспешно зареждане на таговете. Презаредете страницата.')
+    )
   }, [router])
 
   useEffect(() => {
@@ -80,7 +84,10 @@ export default function ToolForm({ mode, toolId }: ToolFormProps) {
             : [{ title: '', description: '', url: '' }]
         )
       })
-      .catch(() => router.replace('/dashboard/tools'))
+      .catch((e) => {
+        const err = e as ApiError
+        setError(err.message ?? 'Не можахме да заредим инструмента.')
+      })
       .finally(() => setLoadingTool(false))
   }, [isEdit, toolId, router])
 

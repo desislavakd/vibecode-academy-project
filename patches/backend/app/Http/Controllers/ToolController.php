@@ -11,12 +11,17 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class ToolController extends Controller
 {
     public function index(Request $request): ResourceCollection
     {
+        $request->validate([
+            'min_rating' => ['nullable', 'numeric', 'min:1', 'max:5'],
+        ]);
+
         $isOwner    = $request->user()->isOwner();
         $hasFilters = $request->hasAny(['search', 'role', 'category', 'tag', 'status', 'min_rating']);
         $page       = (int) $request->input('page', 1);
@@ -25,7 +30,7 @@ class ToolController extends Controller
         // This covers the "N инструмента в платформата" count and the initial listing.
         if (!$hasFilters && $page === 1) {
             $paginator = Cache::remember('tools:approved:page1', 300, function () {
-                return Tool::with($this->toolRelations())
+                return Tool::with($this->toolRelationsForList())
                     ->withAvg('ratings', 'rating')
                     ->withCount('ratings')
                     ->where('status', 'approved')
@@ -39,7 +44,7 @@ class ToolController extends Controller
         // Owner + ?status=all → no filter (show every status, admin panel use case)
         // Owner + ?status=pending|approved|rejected → filter by that status
         // Everyone else (or owner without ?status) → approved only
-        $query = Tool::with($this->toolRelations())
+        $query = Tool::with($this->toolRelationsForList())
             ->withAvg('ratings', 'rating')
             ->withCount('ratings')
             ->when(
@@ -62,28 +67,32 @@ class ToolController extends Controller
 
     public function store(StoreToolRequest $request): ToolResource
     {
-        $tool = Tool::create([
-            'name'              => $request->name,
-            'url'               => $request->url,
-            'description'       => $request->description,
-            'how_to_use'        => $request->how_to_use,
-            'documentation_url' => $request->documentation_url,
-            'status'            => $request->user()->isOwner() ? 'approved' : 'pending',
-            'created_by'        => $request->user()->id,
-        ]);
+        $tool = DB::transaction(function () use ($request) {
+            $tool = Tool::create([
+                'name'              => $request->name,
+                'url'               => $request->url,
+                'description'       => $request->description,
+                'how_to_use'        => $request->how_to_use,
+                'documentation_url' => $request->documentation_url,
+                'status'            => $request->user()->isOwner() ? 'approved' : 'pending',
+                'created_by'        => $request->user()->id,
+            ]);
 
-        if ($request->filled('categories')) {
-            $tool->categories()->sync($request->categories);
-        }
+            if ($request->filled('categories')) {
+                $tool->categories()->sync($request->categories);
+            }
 
-        $tool->syncRoles($request->input('roles', []));
-        $tool->syncTagsFromNames($request->input('tags', []));
-        $tool->syncScreenshots($request->input('screenshots', []));
-        $tool->syncExamples($request->input('examples', []));
+            $tool->syncRoles($request->input('roles', []));
+            $tool->syncTagsFromNames($request->input('tags', []));
+            $tool->syncScreenshots($request->input('screenshots', []));
+            $tool->syncExamples($request->input('examples', []));
+
+            AuditLog::record($request->user(), 'created', $tool);
+
+            return $tool;
+        });
 
         $this->clearToolCache();
-
-        AuditLog::record($request->user(), 'created', $tool);
 
         return new ToolResource($tool->load($this->toolRelations()));
     }
@@ -102,43 +111,45 @@ class ToolController extends Controller
     {
         Gate::authorize('update', $tool);
 
-        $fields    = ['name', 'url', 'description', 'how_to_use', 'documentation_url'];
-        $oldValues = $tool->only($fields);
+        DB::transaction(function () use ($request, $tool) {
+            $fields    = ['name', 'url', 'description', 'how_to_use', 'documentation_url'];
+            $oldValues = $tool->only($fields);
 
-        $tool->update($request->only($fields));
+            $tool->update($request->only($fields));
 
-        // Build a diff of changed scalar fields for the audit log
-        $newValues = $tool->only($fields);
-        $changes   = [];
-        foreach ($fields as $field) {
-            if ($oldValues[$field] !== $newValues[$field]) {
-                $changes[$field] = ['old' => $oldValues[$field], 'new' => $newValues[$field]];
+            // Build a diff of changed scalar fields for the audit log
+            $newValues = $tool->only($fields);
+            $changes   = [];
+            foreach ($fields as $field) {
+                if ($oldValues[$field] !== $newValues[$field]) {
+                    $changes[$field] = ['old' => $oldValues[$field], 'new' => $newValues[$field]];
+                }
             }
-        }
 
-        if ($request->has('categories')) {
-            $tool->categories()->sync($request->input('categories', []));
-        }
+            if ($request->has('categories')) {
+                $tool->categories()->sync($request->input('categories', []));
+            }
 
-        if ($request->has('roles')) {
-            $tool->syncRoles($request->input('roles', []));
-        }
+            if ($request->has('roles')) {
+                $tool->syncRoles($request->input('roles', []));
+            }
 
-        if ($request->has('tags')) {
-            $tool->syncTagsFromNames($request->input('tags', []));
-        }
+            if ($request->has('tags')) {
+                $tool->syncTagsFromNames($request->input('tags', []));
+            }
 
-        if ($request->has('screenshots')) {
-            $tool->syncScreenshots($request->input('screenshots', []));
-        }
+            if ($request->has('screenshots')) {
+                $tool->syncScreenshots($request->input('screenshots', []));
+            }
 
-        if ($request->has('examples')) {
-            $tool->syncExamples($request->input('examples', []));
-        }
+            if ($request->has('examples')) {
+                $tool->syncExamples($request->input('examples', []));
+            }
+
+            AuditLog::record($request->user(), 'updated', $tool, $changes);
+        });
 
         $this->clearToolCache();
-
-        AuditLog::record($request->user(), 'updated', $tool, $changes);
 
         return new ToolResource($tool->load($this->toolRelations()));
     }
@@ -197,7 +208,13 @@ class ToolController extends Controller
         return new ToolResource($tool->load($this->toolRelations()));
     }
 
-    /** Relations eager-loaded on every tool response. */
+    /** Relations for list views — excludes heavy screenshot/example data. */
+    private function toolRelationsForList(): array
+    {
+        return ['author', 'categories', 'toolRoles', 'tags'];
+    }
+
+    /** Full relations for single-tool responses (show, store, update). */
     private function toolRelations(): array
     {
         return ['author', 'categories', 'toolRoles', 'tags', 'screenshots', 'examples'];

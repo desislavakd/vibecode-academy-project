@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { getUser, User } from '@/lib/auth'
-import { getTool, deleteTool, rateTool, Tool } from '@/lib/tools'
+import { getTool, deleteTool, rateTool, Tool, ApiError } from '@/lib/tools'
 import { roleColors } from '@/lib/constants'
 
 function IconUsers() {
@@ -128,6 +128,9 @@ export default function ToolDetailPage() {
   const [userRating,  setUserRating]  = useState<number | null>(null)
   const [hoverStar,   setHoverStar]   = useState<number | null>(null)
   const [ratingBusy,  setRatingBusy]  = useState(false)
+  const [ratingError, setRatingError] = useState<string | null>(null)
+  const [loadError,   setLoadError]   = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
     getUser()
@@ -144,7 +147,10 @@ export default function ToolDetailPage() {
         setRatingCount(t.ratings_count)
         setUserRating(t.user_rating)
       })
-      .catch(() => router.replace('/dashboard/tools'))
+      .catch((e) => {
+        const err = e as ApiError
+        setLoadError(err.message ?? 'Инструментът не беше намерен.')
+      })
       .finally(() => setLoading(false))
   }, [id, router])
 
@@ -153,13 +159,15 @@ export default function ToolDetailPage() {
   async function handleRate(star: number) {
     if (ratingBusy) return
     setRatingBusy(true)
+    setRatingError(null)
     try {
       const result = await rateTool(Number(id), star)
       setRatingAvg(result.average)
       setRatingCount(result.count)
       setUserRating(result.user_rating)
-    } catch {
-      // silent — existing rating remains
+    } catch (e) {
+      const err = e as ApiError
+      setRatingError(err.message ?? 'Грешка при оценяване')
     } finally {
       setRatingBusy(false)
     }
@@ -171,14 +179,20 @@ export default function ToolDetailPage() {
     try {
       await deleteTool(Number(id))
       router.push('/dashboard/tools')
-    } catch {
-      alert('Грешка при изтриване')
+    } catch (e) {
+      const err = e as ApiError
+      setDeleteError(err.message ?? 'Грешка при изтриване')
       setDeleting(false)
     }
   }
 
   if (loading) return <div className="page"><p>Зареждане...</p></div>
-  if (!tool)   return null
+  if (!tool) return (
+    <div className="page">
+      {loadError && <div className="alert-error">{loadError}</div>}
+      <Link href="/dashboard/tools" className="btn btn-outline" style={{ marginTop: '1rem', display: 'inline-block' }}>← Назад към инструментите</Link>
+    </div>
+  )
 
   const favicon = tool.url
     ? `https://www.google.com/s2/favicons?domain=${new URL(tool.url).hostname}&sz=64`
@@ -245,6 +259,7 @@ export default function ToolDetailPage() {
                 </>
               )}
             </div>
+            {deleteError && <div className="alert-error" style={{ marginTop: '0.75rem' }}>{deleteError}</div>}
           </div>
         </div>
 
@@ -281,6 +296,7 @@ export default function ToolDetailPage() {
                 : 'Все още без оценки — бъди първият!'}
             </span>
           </div>
+          {ratingError && <p className="alert-error" style={{ marginTop: '0.5rem' }}>{ratingError}</p>}
         </div>
 
         {/* Roles */}
